@@ -1,0 +1,6 @@
+subdir('appmenu')
+subdir('windowlist')
+subdir('showdesktop')
+subdir('time')
+subdir('controlcenter')
+subdir('tray')

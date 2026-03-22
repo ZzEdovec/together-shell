@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="together-shell">
+	<schema id="com.github.ZzEdovec.TogetherShell" path="/com/github/ZzEdovec/togethershell/">
+    <key name="panels" type="s">
+      <default>'{"panels":[{"position":"bottom","size":48,"plugins":["libtogethershell-panel-plugin-appmenu.so","libtogethershell-panel-plugin-windowlist.so","libtogethershell-panel-plugin-tray.so","togethershell-panel-plugin-controlcenter","libtogethershell-panel-plugin-time"]}]}'</default>
+      <summary>Panels and plugins settings</summary>
+      <description>Stores the position and size of panels, as well as plugins and their settings</description>
+    </key>
+	  <key name="pinned" type="as">
+	    <default>[]</default>
+      <summary>Pinned (favorite) apps</summary>
+    </key>
+	  <key name="background" type="s">
+	    <default>'/home/queinu/Изображения/together-shell/background.jpg'</default>
+	    <summary>Background image path</summary>
+	  </key>
+	  <key name="background-fit" type="s">
+	    <default>'fill'</default>
+	    <choices>
+	      <choice value="fill"/>
+	      <choice value="contain"/>
+	      <choice value="cover"/>
+	      <choice value="scale-down"/>
+	    </choices>
+	    <summary>Background fit mode</summary>
+	  </key>
+	</schema>
+</schemalist>

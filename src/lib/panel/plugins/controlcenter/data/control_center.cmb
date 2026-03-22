@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<!-- Created with Cambalache 0.96.3 -->
+<cambalache-project version="0.96.0" target_tk="gtk-4.0">
+  <ui template-class="ControlCenterPluginControlCenter" filename="control_center.ui" sha256="3322b55af5a4ce8e34d890c53a6daa0b3979a868c7e98281a49d8c06a8e86e34"/>
+  <ui template-class="ControlCenterPluginSoundPage" filename="sound_page.ui" sha256="f4b0520a7659630cf4a5507169376deac890920d31eee48705a4aaf43b0029dd"/>
+  <ui template-class="ControlCenterPluginConnectionPage" filename="connection_page.ui" sha256="2fad8f57d3812bd26d9beb5a5ca49c806716b3d91559a62841f0acc295b5735f"/>
+  <ui template-class="ControlCenterPluginPowerPage" filename="power_page.ui" sha256="2067dd873847c6c4774b2dde85f8f36d0f77614ef8ed304bfb33e087fd6f918d"/>
+</cambalache-project>

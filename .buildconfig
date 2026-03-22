@@ -1,0 +1,11 @@
+[host]
+name=host
+runtime=host
+toolchain=default
+config-opts=
+run-opts=
+prefix=/home/queinu/Projects/.gnome-builder/projects/together-shell/install/host
+app-id=
+postbuild=
+prebuild=
+run-command=/home/queinu/Projects/.gnome-builder/projects/together-shell/install/host/bin/together-shell

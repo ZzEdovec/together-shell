@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.3 -->
+<interface>
+  <!-- interface-name connection_page.ui -->
+  <requires lib="gtk" version="4.18"/>
+  <requires lib="libadwaita" version="1.6"/>
+  <template class="ControlCenterPluginConnectionPage" parent="AdwBin">
+    <child>
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">8</property>
+                <child>
+                  <object class="AdwPreferencesGroup" id="available_connections_group">
+                    <property name="title" translatable="yes">Available connections</property>
+                    <property name="vexpand">True</property>
+                    <property name="visible">False</property>
+                    <child>
+                      <object class="GtkListBox" id="available_connections_list">
+                        <property name="css-classes">boxed-list</property>
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="connection_switch">
+                    <property name="css-classes">card</property>
+                    <property name="valign">end</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

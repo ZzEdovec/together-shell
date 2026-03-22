@@ -1,0 +1,25 @@
+/* If you are making a window list plugin, please use this classes to unify the design of the Together Shell */
+.panel-task-button {
+  background-clip: padding-box;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+}
+
+.searchbar-nobackground revealer box {
+  background: none;
+    border: none;
+    box-shadow: none;
+}
+
+/* This class is applied automatically if the widget being added to the panel is a button */
+.panel-button {
+  background-clip: padding-box;
+  border: 4px solid transparent;
+  min-width: 0px;
+}
+
+flowboxchild:hover {
+  background: none;
+}

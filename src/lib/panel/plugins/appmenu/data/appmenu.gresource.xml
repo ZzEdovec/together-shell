@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/github/ZzEdovec/togethershell/panel/appmenu">
+    <file preprocess="xml-stripblanks">app_menu.ui</file>
+  </gresource>
+</gresources>

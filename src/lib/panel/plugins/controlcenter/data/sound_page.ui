@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.3 -->
+<interface>
+  <!-- interface-name sound_page.ui -->
+  <requires lib="gtk" version="4.18"/>
+  <requires lib="libadwaita" version="1.6"/>
+  <template class="ControlCenterPluginSoundPage" parent="AdwBin">
+    <property name="height-request">306</property>
+    <property name="width-request">400</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">8</property>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Default devices</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="AdwExpanderRow" id="output_expander">
+                    <property name="icon-name">audio-volume-high-symbolic</property>
+                    <property name="subtitle-lines">1</property>
+                    <property name="title" translatable="yes">Speaker</property>
+                    <property name="title-lines">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwExpanderRow" id="input_expander">
+                    <property name="icon-name">audio-input-microphone-symbolic</property>
+                    <property name="subtitle-lines">1</property>
+                    <property name="title" translatable="yes">Microphone</property>
+                    <property name="title-lines">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Volume</property>
+                <property name="valign">end</property>
+                <child>
+                  <object class="AdwActionRow" id="speaker_volume_row">
+                    <property name="activatable">True</property>
+                    <property name="icon-name">audio-volume-high-symbolic</property>
+                    <property name="subtitle-lines">1</property>
+                    <property name="title">Speaker</property>
+                    <property name="title-lines">1</property>
+                    <child>
+                      <object class="GtkScale" id="speaker_volume_scale">
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="upper">1.0</property>
+                          </object>
+                        </property>
+                        <property name="digits">2</property>
+                        <property name="width-request">120</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="microphone_volume_row">
+                    <property name="activatable">True</property>
+                    <property name="icon-name">audio-input-microphone-symbolic</property>
+                    <property name="subtitle-lines">1</property>
+                    <property name="title">Microphone</property>
+                    <property name="title-lines">1</property>
+                    <child>
+                      <object class="GtkScale" id="microphone_volume_scale">
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="upper">1.0</property>
+                          </object>
+                        </property>
+                        <property name="digits">2</property>
+                        <property name="width-request">120</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

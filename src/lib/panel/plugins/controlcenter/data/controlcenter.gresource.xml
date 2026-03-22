@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/github/ZzEdovec/togethershell/panel/controlcenter">
+    <file preprocess="xml-stripblanks">control_center.ui</file>
+    <file preprocess="xml-stripblanks">connection_page.ui</file>
+    <file preprocess="xml-stripblanks">power_page.ui</file>
+    <file preprocess="xml-stripblanks">sound_page.ui</file>
+  </gresource>
+</gresources>

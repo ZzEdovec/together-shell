@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.3 -->
+<interface>
+  <!-- interface-name classic_menu.ui -->
+  <requires lib="gio" version="2.0"/>
+  <requires lib="gtk" version="4.18"/>
+  <requires lib="libadwaita" version="1.7"/>
+  <template class="AppMenuPluginMenu" parent="GtkPopover">
+    <property name="has-arrow">False</property>
+    <child>
+      <object class="GtkRevealer">
+        <child>
+          <object class="GtkBox">
+            <property name="height-request">350</property>
+            <property name="width-request">600</property>
+            <child>
+              <object class="GtkBox">
+                <property name="margin-bottom">15</property>
+                <property name="margin-start">15</property>
+                <property name="margin-top">15</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">15</property>
+                <child>
+                  <object class="GtkButton" id="settings_button">
+                    <property name="css-classes">circular</property>
+                    <property name="icon-name">applications-system-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">System settings</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwInlineViewSwitcher">
+                    <property name="css-classes">round</property>
+                    <property name="display-mode">icons</property>
+                    <property name="halign">center</property>
+                    <property name="orientation">vertical</property>
+                    <property name="stack">view_stack</property>
+                    <property name="vexpand">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuButton" id="power_button">
+                    <property name="css-classes">circular</property>
+                    <property name="direction">none</property>
+                    <property name="icon-name">system-shutdown-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Power menu</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwViewStack" id="view_stack">
+                <property name="enable-transitions">True</property>
+                <property name="hexpand">True</property>
+                <property name="margin-bottom">15</property>
+                <property name="margin-end">15</property>
+                <property name="margin-start">15</property>
+                <property name="margin-top">15</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="AdwViewStackPage">
+                    <property name="child">
+                      <object class="GtkOverlay">
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <child>
+                              <object class="GtkFlowBox" id="starred_box">
+                                <property name="max-children-per-line">5</property>
+                                <property name="selection-mode">none</property>
+                                <property name="valign">start</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child type="overlay">
+                          <object class="AdwStatusPage" id="favorites_placeholder">
+                            <property name="description">You can pin applications by right-clicking on them</property>
+                            <property name="title" translatable="yes">No pinned apps</property>
+                            <layout>
+                              <property name="clip-overlay">True</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                    <property name="icon-name">view-pin-symbolic</property>
+                    <property name="title" translatable="yes">Pinned</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwViewStackPage" id="apps_page">
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkSearchBar" id="search_bar">
+                            <property name="css-classes">searchbar-nobackground</property>
+                            <child>
+                              <object class="GtkSearchEntry" id="search_entry">
+                                <property name="halign">center</property>
+                                <property name="search-delay">350</property>
+                                <signal name="activate" handler="search_activate_first"/>
+                                <signal name="search-changed" handler="search"/>
+                                <signal name="stop-search" handler="search_cancel"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkOverlay">
+                            <property name="vexpand">True</property>
+                            <child type="overlay">
+                              <object class="AdwStatusPage" id="search_placeholder">
+                                <property name="description">Try another query</property>
+                                <property name="title">No results</property>
+                                <property name="visible">False</property>
+                                <layout>
+                                  <property name="clip-overlay">True</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="child">
+                                  <object class="GtkFlowBox" id="apps_box">
+                                    <property name="focusable">True</property>
+                                    <property name="max-children-per-line">4</property>
+                                    <property name="selection-mode">none</property>
+                                    <property name="valign">start</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                    <property name="icon-name">application-x-executable-symbolic</property>
+                    <property name="name">apps</property>
+                    <property name="title" translatable="yes">Apps</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwViewStackPage">
+                    <property name="child">
+                      <object class="GtkScrolledWindow">
+                        <child>
+                          <object class="GtkFlowBox">
+                            <property name="max-children-per-line">5</property>
+                            <property name="selection-mode">none</property>
+                            <property name="valign">start</property>
+                            <child>
+                              <object class="GtkButton" id="downloads_button">
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">folder-download</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="css-classes">body</property>
+                                        <property name="ellipsize">end</property>
+                                        <property name="justify">center</property>
+                                        <property name="label" translatable="yes">Downloads</property>
+                                        <property name="lines">2</property>
+                                        <property name="width-chars">10</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="css-classes">flat</property>
+                                <property name="height-request">90</property>
+                                <signal name="clicked" handler="open_dir"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="documents_button">
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">folder-documents</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="css-classes">body</property>
+                                        <property name="ellipsize">end</property>
+                                        <property name="justify">center</property>
+                                        <property name="label" translatable="yes">Documents</property>
+                                        <property name="lines">2</property>
+                                        <property name="width-chars">10</property>
+                                        <property name="wrap">True</property>
+                                        <property name="wrap-mode">word-char</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="css-classes">flat</property>
+                                <property name="height-request">90</property>
+                                <signal name="clicked" handler="open_dir"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="music_button">
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">folder-music</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="css-classes">body</property>
+                                        <property name="ellipsize">end</property>
+                                        <property name="justify">center</property>
+                                        <property name="label" translatable="yes">Music</property>
+                                        <property name="lines">2</property>
+                                        <property name="width-chars">10</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="css-classes">flat</property>
+                                <property name="height-request">90</property>
+                                <signal name="clicked" handler="open_dir"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="pictures_button">
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">folder-pictures</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="css-classes">body</property>
+                                        <property name="ellipsize">end</property>
+                                        <property name="justify">center</property>
+                                        <property name="label" translatable="yes">Pictures</property>
+                                        <property name="lines">2</property>
+                                        <property name="width-chars">10</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="css-classes">flat</property>
+                                <property name="height-request">90</property>
+                                <signal name="clicked" handler="open_dir"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="videos_button">
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">10</property>
+                                    <property name="valign">center</property>
+                                    <child>
+                                      <object class="GtkImage">
+                                        <property name="icon-name">folder-videos</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="css-classes">body</property>
+                                        <property name="ellipsize">end</property>
+                                        <property name="justify">center</property>
+                                        <property name="label" translatable="yes">Videos</property>
+                                        <property name="lines">2</property>
+                                        <property name="width-chars">10</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="css-classes">flat</property>
+                                <property name="height-request">90</property>
+                                <signal name="clicked" handler="open_dir"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                    <property name="icon-name">inode-directory-symbolic</property>
+                    <property name="title" translatable="yes">Places</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEventControllerKey" id="key_controller">
+        <signal name="key-pressed" handler="switch_to_search"/>
+      </object>
+    </child>
+  </template>
+</interface>
