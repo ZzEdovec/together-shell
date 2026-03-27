@@ -42,6 +42,7 @@ public class TogetherShell.Application : Adw.Application {
         }
 
         load_actions ();
+        new WayfireIPC ().call ("list-methods");
 
         var root = config_parser.get_root ();
         var root_obj = root.get_object ();

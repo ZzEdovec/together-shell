@@ -46,29 +46,29 @@ wf_shell_code = custom_target(
 	],
 )
 
-tg_dodge_header = custom_target(
-	'together-dock-dodge-v1-client-header',
-	input: '/usr/share/wayfire/protocols/together-dock-dodge-v1.xml',
-	output: 'together-dock-dodge-v1.h',
-	command: [
-	'wayland-scanner',
-	'client-header',
-	'@INPUT@',
-	'@OUTPUT@',
-	],
-)
+#tg_dodge_header = custom_target(
+#	'together-dock-dodge-v1-client-header',
+#	input: '/usr/share/wayfire/protocols/together-dock-dodge-v1.xml',
+#	output: 'together-dock-dodge-v1.h',
+#	command: [
+#	'wayland-scanner',
+#	'client-header',
+#	'@INPUT@',
+#	'@OUTPUT@',
+#	],
+#)
 
-wg_dodge_code = custom_target(
-	'together-dock-dodge-v1-client-code',
-	input: '/usr/share/wayfire/protocols/together-dock-dodge-v1.xml',
-	output: 'together-dock-dodge-v1.c',
-	command: [
-	'wayland-scanner',
-	'public-code',
-	'@INPUT@',
-	'@OUTPUT@',
-	],
-)
+#wg_dodge_code = custom_target(
+#	'together-dock-dodge-v1-client-code',
+#	input: '/usr/share/wayfire/protocols/together-dock-dodge-v1.xml',
+#	output: 'together-dock-dodge-v1.c',
+#	command: [
+#	'wayland-scanner',
+#	'public-code',
+#	'@INPUT@',
+#	'@OUTPUT@',
+#	],
+#)
 
 libtogethershell_deps = [
 	dependency('gtk4'),
@@ -91,10 +91,8 @@ libtogethershell_sources += [
 	'panel/panel.vala',
 	'desktop/background.vala',
 	'desktop/background-manager.vala',
-	'dbus/keybinds.vala',
-	'dbus/service.vala',
 	'wayland/vapi/wayland-client.vapi',
-	'wayland/vapi/together-dock-dodge-v1.vapi',
+#	'wayland/vapi/together-dock-dodge-v1.vapi',
 	'wayland/vapi/wlr-foreign-toplevel-management-unstable-v1.vapi',
 	'wayland/vapi/wayfire-shell-unstable-v2.vapi',
 	'wayland/output-management.vala',
@@ -103,13 +101,13 @@ libtogethershell_sources += [
 	'wayfire/ipc.vala',
 	wlr_toplevel_code,
 	wf_shell_code,
-	wg_dodge_code,
+#	wg_dodge_code,
 ]
 
 libtogethershell_dep_sources = [
 	wf_shell_header,
 	wlr_toplevel_header,
-	tg_dodge_header,
+#	tg_dodge_header,
 	'wayland/vapi/wayland-client.vapi',
 	'wayland/vapi/wlr-foreign-toplevel-management-unstable-v1.vapi',
 	'wayland/vapi/together-dock-dodge-v1.vapi',
@@ -118,6 +116,7 @@ libtogethershell_dep_sources = [
 libtogethershell = shared_library(
 	'togethershell',
 	libtogethershell_sources,
+	vala_args: ['--pkg','posix'],
 	dependencies: libtogethershell_deps,
 	include_directories: config_inc,
 	install: true,
