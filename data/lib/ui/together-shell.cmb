@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<!-- Created with Cambalache 1.0 -->
+<cambalache-project version="1.0.0" target_tk="gtk-4.0" depends="libadwaita-1">
+  <ui template-class="TogetherShellLevelPopup" filename="level_popup.ui" sha256="2e52167de0b017117faf79bfcc9272ebfa307098f410021fc3195039b86d41b3"/>
+</cambalache-project>

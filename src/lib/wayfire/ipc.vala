@@ -1,81 +1,49 @@
-namespace TogetherShell {
-    private class CallbackKeeper {
+namespace Wayfire {
+    private class SourceKeeper {
         public SourceFunc callback;
 
-        public CallbackKeeper (SourceFunc callback) {
-            this.callback = callback;
+        public SourceKeeper (owned SourceFunc callback) {
+            this.callback = (owned) callback;
         }
     }
 
+    // If you call more than one IPC method at a time, keep a strong reference to the class to avoid problems due to async!
     [SingleInstance]
     public class WayfireIPC : Object {
-        private SocketConnection connection;
-        private IOChannel channel;
-        private Gee.ArrayQueue<CallbackKeeper> callback_queue = new Gee.ArrayQueue<CallbackKeeper> ();
-        private Json.Object? pending_payload = null;
+        private SocketConnection? connection;
+        private IOChannel? channel;
+        private uint? watch_id;
+        private Gee.ArrayQueue<SourceKeeper> write_queue = new Gee.ArrayQueue<SourceKeeper> ();
+        private SourceFunc? read_callback;
+        private bool busy = false;
+        private Json.Object? pending_payload;
 
-        public WayfireIPC () {
+        [Signal (detailed = true)]
+        public signal void event_received (Json.Object j_obj);
+
+        ~WayfireIPC () {
+            try {
+                if (watch_id != null) { Source.remove (watch_id); }
+                if (channel != null) { channel.shutdown (true); }
+            } catch (Error e) {
+                warning ("WayfireIPC: failed to shutdown IOChannel, possible memory leak: %s", e.message);
+            }
+        }
+
+        private async void connect_socket () throws Error {
             string? socket_path = Environment.get_variable ("WAYFIRE_SOCKET");
-
             if (socket_path == null)
-                socket_path = "/run/user/%i/wayfire-wayland-1-.socket".printf ((int) Posix.getuid ());
+                socket_path = "/run/user/%u/wayfire-wayland-1-.socket".printf ((uint) Posix.getuid ());
 
             var client = new SocketClient ();
-            try {
-                connection = client.connect (new UnixSocketAddress (socket_path));
-            } catch (Error e) {
-                critical ("WayfireIPC connection failed: %s", e.message);
-                return;
-            }
+            connection = yield client.connect_async (new UnixSocketAddress (socket_path));
 
             channel = new IOChannel.unix_new (connection.socket.fd);
-            channel.add_watch (IOCondition.IN | IOCondition.HUP | IOCondition.ERR, on_data);
-
-            print ("Wayfire IPC inited\n");
+            channel.set_close_on_unref (true);
+            watch_id = channel.add_watch (IOCondition.IN | IOCondition.HUP | IOCondition.ERR, read_response);
         }
 
-        private bool on_data (IOChannel source, IOCondition condition) {
-            print ("data\n");
-            if ((condition & (IOCondition.ERR | IOCondition.HUP)) != 0)
-                return false;
-
-            try {
-                uint8[] lbuf = new uint8[4];
-                connection.input_stream.read_all (lbuf, null);
-                uint32 len = (uint32) lbuf[0] | ((uint32) lbuf[1] << 8) | ((uint32) lbuf[2] << 16) | ((uint32) lbuf[3] << 24);
-                uint8[] buf = new uint8[len];
-                connection.input_stream.read_all (buf, null);
-
-                var parser = new Json.Parser ();
-                parser.load_from_data ((string) buf);
-                var j_obj = parser.get_root ().get_object ();
-
-                pending_payload = j_obj;
-
-                if (j_obj.has_member ("event")) {
-                    return true; // TODO
-                }
-                else {
-                    if (!callback_queue.is_empty) {
-                        var callback = callback_queue.poll ();
-                        print ("callback\n");
-                        callback.callback ();
-                        print ("callbacked\n");
-                    }
-                }
-
-                return true;
-            } catch (Error e) {
-                critical ("Wayfire IPC error: %s", e.message);
-                return false;
-            }
-        }
-
-        public async void disconnect () throws Error {
-            yield connection.close_async (Priority.DEFAULT);
-        }
-
-        public async Json.Object? do_call (string method, Json.Object? data = new Json.Object ()) throws Error {
+        public async Json.Object? call (string method, Json.Object data = new Json.Object ()) throws Error {
             var root = new Json.Object ();
             var node = new Json.Node (Json.NodeType.OBJECT);
 
@@ -93,16 +61,88 @@ namespace TogetherShell {
                 (uint8) (len >> 24)
             };
 
-            callback_queue.offer (new CallbackKeeper (do_call.callback));
-            yield connection.output_stream.write_all_async (lbuf, Priority.DEFAULT, null, null);
-            yield connection.output_stream.write_all_async (msg, Priority.DEFAULT, null, null);
+            if (busy) {
+                SourceFunc callback = call.callback;
+                write_queue.offer (new SourceKeeper ((owned) callback));
+                yield;
+            }
+
+            busy = true;
+
+            if (connection == null)
+                yield connect_socket ();
+
+            connection.output_stream.write_all (lbuf, null);
+            connection.output_stream.write_all (msg, null);
+
+            var response = yield wait_for_response ();
+
+            if (response.has_member ("error"))
+                throw new IOError.FAILED (pending_payload.get_string_member ("error"));
+
+            return response;
+        }
+
+        private async Json.Object? wait_for_response () {
+            SourceFunc callback = wait_for_response.callback;
+            read_callback = (owned) callback;
             yield;
 
             var payload = pending_payload;
             pending_payload = null;
+            read_callback = null;
 
-            print (payload.get_string_member ("data") + "\n");
             return payload;
+        }
+
+        private bool read_response (IOChannel source, IOCondition condition) {
+            if (condition == IOCondition.ERR || condition == IOCondition.HUP)
+                return false;
+
+            try {
+                uint8[] lbuf = new uint8[4];
+                connection.input_stream.read_all (lbuf, null);
+
+                uint32 len = (uint32) lbuf[0] | ((uint32) lbuf[1] << 8) | ((uint32) lbuf[2] << 16) | ((uint32) lbuf[3] << 24);
+                uint8[] buf = new uint8[len];
+                connection.input_stream.read_all (buf, null);
+
+                var parser = new Json.Parser ();
+                parser.load_from_data ((string) buf);
+                var object = parser.get_root ().get_object ();
+
+                if (object.has_member ("event")) {
+                    if (object.has_member ("binding-id"))
+                        Signal.emit_by_name (this, "event_received::%lld".printf (object.get_int_member ("binding-id")), object);
+                    else
+                        Signal.emit_by_name (this, "event_received::%s\n".printf (object.get_string_member ("event")), object);
+
+                    return true;
+                }
+                else
+                    pending_payload = object;
+            } catch (Error e) {
+                critical ("WayfireIPC: failed to read message - %s\n", e.message);
+                return false;
+            }
+
+            if (read_callback != null)
+                read_callback ();
+            else
+                print ("no read callback\n");
+
+            Idle.add (() => {
+                busy = false;
+
+                var next_cb = write_queue.poll ();
+                if (next_cb != null)
+                    next_cb.callback ();
+
+                return false;
+            });
+
+            return true;
         }
     }
 }
+

@@ -6,3 +6,4 @@ namespace Wl {
     [CCode (cname = "wl_output_interface")]
     public static extern Wl.Interface output_interface;
 }
+

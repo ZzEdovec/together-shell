@@ -24,20 +24,30 @@ public class AppMenuPlugin.Menu : Gtk.Popover {
     private unowned Gtk.SearchEntry search_entry;
 
     private Gee.HashMap<string,Gtk.Button> apps_buttons = new Gee.HashMap<string,Gtk.Button> ();
-    private Gee.ArrayList<ulong> apps_handlers = new Gee.ArrayList<ulong> ();
     private AppInfoManager apps_manager = new AppInfoManager ();
+    private Registry registry = new Registry ();
+    private OutputV2? wf_output;
 
     public Menu (Panel panel) {
         foreach (var app in apps_manager.apps_list.keys)
             add_app (app);
 
-        var add_handler = apps_manager.app_added.connect (add_app);
-        var update_handler = apps_manager.app_updated.connect (update_app);
-        var remove_handler = apps_manager.app_removed.connect (remove_app);
+        var output = registry.outputs_keeper.get_output_by_widget (panel);
+        if (output != null) {
+            wf_output = registry.wayfire_shell_manager.get_wf_output (output);
+            wf_output.notify["menu_toggled"].connect (() => {
+                if (wf_output.menu_toggled)
+                    popup ();
+                else
+                    popdown ();
+            });
+        }
 
-        apps_handlers.add (add_handler);
-        apps_handlers.add (update_handler);
-        apps_handlers.add (remove_handler);
+        registry.ref_count++; // lol
+
+        apps_manager.app_added.connect (add_app);
+        apps_manager.app_updated.connect (update_app);
+        apps_manager.app_removed.connect (remove_app);
 
         apps_box.set_filter_func (filter_apps);
     }

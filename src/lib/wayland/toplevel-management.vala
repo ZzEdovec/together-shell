@@ -11,65 +11,53 @@
  */
 
 public class TogetherShell.ToplevelWindow : Object {
-    internal unowned Zwlr.ForeignToplevelHandleV1? parent;
-    internal unowned Zwlr.ForeignToplevelHandleV1 handle;
-    private unowned Wl.Display display;
-    private unowned Wl.Seat seat;
+    private unowned Registry registry;
+    private unowned Zwlr.ForeignToplevelHandleV1? parent; // TODO
+    private unowned Zwlr.ForeignToplevelHandleV1 handle;
     private Zwlr.ForeignToplevelHandleV1Listener handle_listener;
 
-    public Gee.ArrayList<Output> current_outputs;
-    public string title;
-    public string app_id;
-    public bool maximized;
-    public bool minimized;
-    public bool activated;
-    public bool fullscreen;
+    public Output[] current_outputs { get; private set; }
+    public string title { get; private set; }
+    public string app_id { get; private set; }
+    public bool maximized { get; private set; }
+    public bool minimized { get; private set; }
+    public bool activated { get; private set; }
+    public bool fullscreen { get; private set; }
 
-    public signal void on_title (string title);
-    public signal void on_appid (string app_id);
-    public signal void on_output_enter (Wl.Output output);
-    public signal void on_output_leave (Wl.Output output);
-    public signal void on_parent (Zwlr.ForeignToplevelHandleV1 handle);
     public signal void on_state ();
     public signal void on_closed ();
 
-    public ToplevelWindow (Zwlr.ForeignToplevelHandleV1 handle, Wl.Display display, Wl.Seat seat) {
+    public ToplevelWindow (Zwlr.ForeignToplevelHandleV1 handle, Registry registry) {
         this.handle = handle;
-        this.display = display;
-        this.seat = seat;
-        this.current_outputs = new Gee.ArrayList<Output> ();
+        this.registry = registry;
 
-        this.handle_listener = Zwlr.ForeignToplevelHandleV1Listener () {
+        handle_listener = Zwlr.ForeignToplevelHandleV1Listener () {
             title = (data, h, t) => {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
+                var self = (ToplevelWindow) data;
                 self.title = t;
-                self.on_title (self.title);
+
+                Signal.emit_by_name (self, "notify::title");
             },
 
             app_id = (data, h, id) => {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
+                var self = (ToplevelWindow) data;
                 self.app_id = id;
-                self.on_appid (self.app_id);
+
+                Signal.emit_by_name (self, "notify::app_id");
             },
 
             output_enter = (data, h, o) =>
             {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
-                self.on_output_enter (o);
+                // TODO
             },
 
             output_leave = (data, h, o) =>
             {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
-                self.on_output_leave (o);
+                // TODO
             },
 
             state = (data, h, state_array) => {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
+                var self = (ToplevelWindow) data;
 
                 self.parse_state (state_array);
                 self.on_state ();
@@ -78,29 +66,23 @@ public class TogetherShell.ToplevelWindow : Object {
             done = (data, h) => {},
 
             closed = (data, h) => {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
+                var self = (ToplevelWindow) data;
                 self.on_closed ();
             },
 
             parent = (data, h, parent) => {
-                unowned ToplevelWindow self = (ToplevelWindow) data;
-
+                var self = (ToplevelWindow) data;
                 self.parent = parent;
-                self.on_parent (parent);
             },
         };
 
-        handle.add_listener(ref this.handle_listener, (void*) this);
-    }
-
-    ~ToplevelWindow () {
-        if (handle != null)
-            handle.destroy ();
+        this.handle.add_listener (ref handle_listener, this);
+        registry.display.roundtrip ();
     }
 
     private void parse_state (Wl.Array state_array) {
-        if (state_array.data == null) return;
+        if (state_array.data == null)
+            return;
 
         maximized = false;
         minimized = false;
@@ -131,15 +113,15 @@ public class TogetherShell.ToplevelWindow : Object {
     }
 
     public void activate () {
-        handle.activate(seat);
+        handle.activate(registry.seat_proxy);
 
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void close_window () {
         handle.close();
 
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void toggle_maximize () {
@@ -149,70 +131,70 @@ public class TogetherShell.ToplevelWindow : Object {
             handle.set_maximized();
         }
 
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void toggle_minimize () {
-        if (minimized) {
+        if (minimized)
             handle.unset_minimized();
-        } else {
+        else
             handle.set_minimized();
-        }
 
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void minimize () {
         handle.set_minimized ();
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void unminimize () {
         handle.unset_minimized ();
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void maximize () {
         handle.set_maximized ();
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void unmaximize () {
         handle.unset_maximized ();
-        display.flush ();
+        registry.display.flush ();
     }
 
     public void toggle_fullscreen (Wl.Output? output = null) {
-        if (fullscreen) {
+        if (fullscreen)
             handle.unset_fullscreen();
-        } else {
+        else
             handle.set_fullscreen(output);
-        }
 
-        display.flush ();
+        registry.display.flush ();
+    }
+
+    ~ToplevelWindow () {
+        handle.destroy ();
+        registry.display.flush ();
     }
 }
 
 public class TogetherShell.ToplevelManager : Object {
-    public Gee.ArrayList<ToplevelWindow> windows;
-    private unowned Wl.Display display;
-    private unowned Wl.Seat seat;
-    private unowned Zwlr.ForeignToplevelManagerV1 manager;
+    public Gee.ArrayList<ToplevelWindow> windows = new Gee.ArrayList<ToplevelWindow> ();
+    private unowned Registry registry;
+    private Zwlr.ForeignToplevelManagerV1 manager;
     private Zwlr.ForeignToplevelManagerV1Listener manager_listener;
 
     public signal void window_added (ToplevelWindow window);
 
-    internal ToplevelManager (Zwlr.ForeignToplevelManagerV1 manager, Wl.Display display, Wl.Seat seat) {
-        this.windows = new Gee.ArrayList<ToplevelWindow> ();
-        this.display = display;
-        this.seat = seat;
-        this.manager = manager;
+    internal ToplevelManager (owned Zwlr.ForeignToplevelManagerV1 manager, Registry registry) {
+        this.registry = registry;
+        this.manager = (owned) manager;
 
-        this.manager_listener = Zwlr.ForeignToplevelManagerV1Listener () {
+        manager_listener = Zwlr.ForeignToplevelManagerV1Listener () {
             toplevel = (data, mgr, handle) => {
-                unowned ToplevelManager self = (ToplevelManager) data;
+                var self = (ToplevelManager) data;
 
-                var window = new ToplevelWindow (handle, self.display, self.seat);
+                var window = new ToplevelWindow (handle, self.registry); // ??
                 weak ToplevelWindow window_weak = window; // If we pass a strong ref, the ToplevelWindow destructor will never work and we get a memory leak.
                 window.on_closed.connect (() => {self.windows.remove (window_weak);});
 
@@ -220,19 +202,23 @@ public class TogetherShell.ToplevelManager : Object {
                 self.window_added (window);
             },
             finished = (data, mgr) => {
-                unowned ToplevelManager self = (ToplevelManager) data;
+                var self = (ToplevelManager) data;
 
                 self.windows.clear ();
-                self.display.flush ();
+                self.registry.display.flush ();
             },
         };
 
-        manager.add_listener (ref this.manager_listener, (void*) this);
+        this.manager.add_listener (ref manager_listener, this);
+        registry.display.flush ();
     }
 
-    internal void stop () {
+    ~ToplevelManager () {
         manager.stop ();
-
-        display.flush ();
+        registry.display.flush ();
     }
 }
+
+
+
+

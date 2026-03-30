@@ -23,7 +23,7 @@ namespace Zwf {
 
     [CCode (cname = "struct zwf_shell_manager_v2", free_function = "zwf_shell_manager_v2_destroy")]
     [Compact]
-    public class ShellManagerV2 {
+    public class ShellManagerV2 : Wl.Proxy {
         [CCode (cname = "zwf_shell_manager_v2_get_wf_output")]
         public OutputV2 get_wf_output (Wl.Output output);
 
@@ -31,6 +31,7 @@ namespace Zwf {
         public SurfaceV2 get_wf_surface (Wl.Surface surface);
 
         [CCode (cname = "zwf_shell_manager_v2_destroy")]
+        [DestroysInstance]
         public void destroy ();
 
         [CCode (cname = "zwf_shell_manager_v2_set_user_data")]
@@ -57,9 +58,9 @@ namespace Zwf {
 
     [CCode (cname = "struct zwf_output_v2", free_function = "zwf_output_v2_destroy")]
     [Compact]
-    public class OutputV2 {
+    public class OutputV2 : Wl.Proxy {
         [CCode (cname = "zwf_output_v2_add_listener")]
-        public int add_listener (ref OutputV2Listener listener, void* data = null);
+        public int add_listener (OutputV2Listener listener, void* data = null);
 
         [CCode (cname = "zwf_output_v2_inhibit_output")]
         public void inhibit_output ();
@@ -71,6 +72,7 @@ namespace Zwf {
         public HotspotV2 create_hotspot (uint32 hotspot, uint32 threshold, uint32 timeout);
 
         [CCode (cname = "zwf_output_v2_destroy")]
+        [DestroysInstance]
         public void destroy ();
 
         [CCode (cname = "zwf_output_v2_set_user_data")]
@@ -113,11 +115,12 @@ namespace Zwf {
 
     [CCode (cname = "struct zwf_hotspot_v2", free_function = "zwf_hotspot_v2_destroy")]
     [Compact]
-    public class HotspotV2 {
+    public class HotspotV2 : Wl.Proxy {
         [CCode (cname = "zwf_hotspot_v2_add_listener")]
-        public int add_listener (ref HotspotV2Listener listener, void* data = null);
+        public int add_listener (HotspotV2Listener listener, void* data = null);
 
         [CCode (cname = "zwf_hotspot_v2_destroy")]
+        [DestroysInstance]
         public void destroy ();
 
         [CCode (cname = "zwf_hotspot_v2_set_user_data")]
@@ -153,11 +156,12 @@ namespace Zwf {
 
     [CCode (cname = "struct zwf_surface_v2", free_function = "zwf_surface_v2_destroy")]
     [Compact]
-    public class SurfaceV2 {
+    public class SurfaceV2 : Wl.Proxy {
         [CCode (cname = "zwf_surface_v2_interactive_move")]
         public void interactive_move ();
 
         [CCode (cname = "zwf_surface_v2_destroy")]
+        [DestroysInstance]
         public void destroy ();
 
         [CCode (cname = "zwf_surface_v2_set_user_data")]

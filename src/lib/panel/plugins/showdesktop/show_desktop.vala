@@ -1,7 +1,7 @@
 using TogetherShell;
 
 public class ShowDesktopPlugin.Button : Gtk.Button {
-    private WayfireIPC ipc = new WayfireIPC ();
+    private Wayfire.WayfireIPC ipc = new Wayfire.WayfireIPC ();
 
     public Button (Panel panel) {
         css_classes = { "panel-button", "flat" };

@@ -2,5 +2,6 @@
 <gresources>
   <gresource prefix="/com/github/ZzEdovec/togethershell">
     <file>style.css</file>
+    <file preprocess="xml-stripblanks">ui/level_popup.ui</file>
   </gresource>
 </gresources>

@@ -1,31 +1,18 @@
 using TogetherShell;
 
 public class WindowListPlugin.WindowList : Gtk.Box {
-    private WaylandRegistry registry = new WaylandRegistry ();
+    private Registry registry = new Registry ();
     private ToplevelManager? toplevel_manager;
     private AppInfoManager appinfo_manager = new AppInfoManager ();
     private ulong? window_added_id;
-    private ulong? on_toplevel_id;
 
     public WindowList (Panel panel) {
-        toplevel_manager = registry.toplevel_manager;
-
         hexpand = true;
-
-        if (toplevel_manager == null)
-            on_toplevel_id = registry.on_toplevel_manager.connect ((tl_mgr) => {
-                print ("toplevel!\n");
-                toplevel_manager = tl_mgr;
-                start ();
-            });
-        else
-            start ();
+        start ();
     }
 
     private void start () {
-        if (on_toplevel_id != null)
-            registry.disconnect (on_toplevel_id);
-
+        toplevel_manager = registry.toplevel_manager;
         foreach (var window in toplevel_manager.windows)
             window_added (window);
 
@@ -84,11 +71,22 @@ public class WindowListPlugin.WindowList : Gtk.Box {
 
             button.set_data ("updating_state", false);
         });
-        var window_appid_handle_id = window.on_appid.connect ((app_id) => {
-            var app = appinfo_manager.apps_list[app_id];
+        var window_appid_handle_id = window.notify["app_id"].connect (() => {
+            var app = appinfo_manager.apps_list[window.app_id] ?? appinfo_manager.apps_list[window.app_id.down ()];
+            Icon? gicon = null;
 
-            label.label = app.get_display_name ();
-            icon.set_from_gicon (app.get_icon ());
+            if (app != null) {
+                gicon = app.get_icon ();
+                label.label = app.get_display_name ();
+            }
+            else
+                label.label = window.title ?? _("Unknown app");
+
+            if (gicon != null)
+                icon.set_from_gicon (gicon);
+            else
+                icon.icon_name = "application-x-executable-symbolic";
+
         });
         var window_closed_handle_id = window.on_closed.connect (() => {
             button.disconnect (button.get_data<ulong> ("handle"));
@@ -100,7 +98,7 @@ public class WindowListPlugin.WindowList : Gtk.Box {
             });
         });
         window_handles.add_all_array ({ window_state_handle_id, window_appid_handle_id, window_closed_handle_id });
-
+        Signal.emit_by_name (window, "notify::app_id");
         append (revealer);
         revealer.reveal_child = true;
     }

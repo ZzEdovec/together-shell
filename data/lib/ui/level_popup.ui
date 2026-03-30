@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0 -->
+<interface>
+  <!-- interface-name together-shell.ui -->
+  <requires lib="gtk" version="4.20"/>
+  <template class="TogetherShellLevelPopup" parent="GtkWindow">
+    <property name="css-classes">round
+toplevel</property>
+    <property name="decorated">False</property>
+    <property name="opacity">0.8</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">15</property>
+        <child>
+          <object class="GtkBox">
+            <property name="halign">center</property>
+            <property name="spacing">8</property>
+            <child>
+              <object class="GtkImage" id="icon"/>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="bar">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="player_box">
+            <property name="css-classes">card</property>
+            <property name="spacing">15</property>
+            <property name="visible">False</property>
+            <child>
+              <object class="GtkPicture" id="player_picture">
+                <property name="can-shrink">False</property>
+                <property name="content-fit">scale-down</property>
+                <property name="css-classes">player-art</property>
+                <property name="margin-bottom">15</property>
+                <property name="margin-start">15</property>
+                <property name="margin-top">15</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="halign">center</property>
+                <property name="hexpand">True</property>
+                <property name="margin-bottom">15</property>
+                <property name="margin-end">15</property>
+                <property name="margin-top">15</property>
+                <property name="orientation">vertical</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkLabel" id="player_name">
+                    <property name="css-classes">title-4</property>
+                    <property name="ellipsize">middle</property>
+                    <property name="justify">center</property>
+                    <property name="lines">2</property>
+                    <property name="max-width-chars">20</property>
+                    <property name="natural-wrap-mode">word</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="player_artist">
+                    <property name="ellipsize">middle</property>
+                    <property name="justify">center</property>
+                    <property name="lines">2</property>
+                    <property name="max-width-chars">20</property>
+                    <property name="natural-wrap-mode">word</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

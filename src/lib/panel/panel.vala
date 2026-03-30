@@ -36,14 +36,14 @@ public class TogetherShell.Panel : Gtk.Window {
         GtkLayerShell.set_layer (this, GtkLayerShell.Layer.TOP);
         GtkLayerShell.set_keyboard_mode (this, GtkLayerShell.KeyboardMode.ON_DEMAND);
 
+        present ();
+
         Json.Array? plugins;
         if ((plugins = config.get_array_member ("plugins")) != null && plugins.get_length () > 0)
             load_plugins (plugins);
 
         panel_position = config.get_string_member_with_default ("position", "bottom");
         Signal.emit_by_name (this, "notify::panel_position"); // we put a handler on popover plugins, but if we set a property in the Panel constructor, then the notify signal does not emit itself
-
-        present ();
     }
 
     private void load_plugins (Json.Array plugins) {

@@ -10,21 +10,21 @@ namespace Zwlr {
 
     [CCode (cname = "struct zwlr_foreign_toplevel_manager_v1", free_function = "zwlr_foreign_toplevel_manager_v1_destroy")]
     [Compact]
-    public class ForeignToplevelManagerV1 {
+    public class ForeignToplevelManagerV1 : Wl.Proxy {
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_stop")]
-        public void stop();
+        public void stop ();
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_add_listener")]
-        public int add_listener(ref ForeignToplevelManagerV1Listener listener, void* data = null);
+        public int add_listener (ref ForeignToplevelManagerV1Listener listener, void* data = null);
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_set_user_data")]
-        public void set_user_data(void* user_data);
+        public void set_user_data (void* user_data);
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_get_user_data")]
-        public void* get_user_data();
+        public void* get_user_data ();
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_get_version")]
-        public uint32 get_version();
+        public uint32 get_version ();
     }
 
     [CCode (cname = "struct zwlr_foreign_toplevel_manager_v1_listener", has_type_id = false)]
@@ -47,7 +47,7 @@ namespace Zwlr {
 
     [CCode (cname = "struct zwlr_foreign_toplevel_handle_v1", free_function = "zwlr_foreign_toplevel_handle_v1_destroy")]
     [Compact]
-    public class ForeignToplevelHandleV1 {
+    public class ForeignToplevelHandleV1 : Wl.Proxy {
         [CCode (cname = "zwlr_foreign_toplevel_handle_v1_set_maximized")]
         public void set_maximized();
 
@@ -169,5 +169,6 @@ namespace Zwlr {
         INVALID_RECTANGLE
     }
 }
+
 
 

@@ -4,7 +4,7 @@
  */
 
 [CCode (cheader_filename = "together-dock-dodge-v1.h")]
-namespace TogetherShell {
+namespace Tdd {
 
     // -------------------------------------------------------------------------
     // together_dock_dodge_manager_v1

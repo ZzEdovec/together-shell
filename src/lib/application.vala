@@ -13,6 +13,8 @@
 public class TogetherShell.Application : Adw.Application {
     public Gee.ArrayList<Panel> panels = new Gee.ArrayList<Panel> ();
     public PluginLoader plugin_loader = new PluginLoader ();
+    //public Registry reg = new Registry ();
+    private PopupsManager popups_manager;
     private BackgroundManager background_manager;
 
     public Application () {
@@ -28,6 +30,7 @@ public class TogetherShell.Application : Adw.Application {
 
         // TODO: TOGETHER SHELL INITIAL SETUP APPLICATION
 
+        popups_manager = new PopupsManager ();
         background_manager = new BackgroundManager ();
         load_panels ();
     }
@@ -42,14 +45,13 @@ public class TogetherShell.Application : Adw.Application {
         }
 
         load_actions ();
-        new WayfireIPC ().call ("list-methods");
 
         var root = config_parser.get_root ();
         var root_obj = root.get_object ();
 
         var panels = root_obj.get_array_member ("panels");
         panels.foreach_element ((array, index, member_node) => {
-            Panel panel = new Panel(this, member_node.get_object ());
+            Panel panel = new Panel (this, member_node.get_object ());
             this.panels.add (panel);
         });
     }
@@ -63,3 +65,4 @@ public class TogetherShell.Application : Adw.Application {
         add_action (shutdown);
     }
 }
+
