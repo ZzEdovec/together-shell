@@ -3,7 +3,6 @@ project('together-shell', ['c', 'vala'],
     meson_version: '>= 1.0.0',
   default_options: [ 'warning_level=2', 'werror=false', ],
 )
-together_shell_sources = []
 
 i18n = import('i18n')
 gnome = import('gnome')
@@ -24,6 +23,17 @@ config_dep = valac.find_library ('config', dirs: srcdir)
 config_inc = include_directories('.')
 
 add_project_arguments('-DGETTEXT_PACKAGE="' + meson.project_name () + '"', language: 'c')
+
+#subdir('subprojects/libtogether-shell-plugin-api')
+#subdir('subprojects/libtogether-wayfire')
+#subdir('subprojects/libtogether-wayland')
+#wayfire_dep = libtogether_wayfire_dep
+#wayland_dep = libtogether_wayland_dep
+#api_dep = libtogether_api_dep
+
+wayfire_dep = dependency('together-wayfire-0.1', fallback: ['libtogether-wayfire', 'libtogether_wayfire_dep'])
+wayland_dep = dependency('together-wayland-0.1', fallback: ['libtogether-wayland', 'libtogether_wayland_dep'])
+api_dep = dependency('together-plugin-api-0.1', fallback: ['libtogether-shell-plugin-api', 'libtogether_api_dep'])
 
 subdir('data')
 subdir('src')

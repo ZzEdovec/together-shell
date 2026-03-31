@@ -1,0 +1,6 @@
+[Plugin]
+Module=window-list
+Name=Window List
+Description=Window List
+Authors=queinu
+Version=1.0

@@ -11,7 +11,7 @@
       <summary>Pinned (favorite) apps</summary>
     </key>
 	  <key name="background" type="s">
-	    <default>'/home/queinu/Изображения/together-shell/background.jpg'</default>
+	    <default>'/home/queinu/Загрузки/anime-style-mythical-dragon-creature.jpg'</default>
 	    <summary>Background image path</summary>
 	  </key>
 	  <key name="background-fit" type="s">

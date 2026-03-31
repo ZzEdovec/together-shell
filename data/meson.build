@@ -7,5 +7,9 @@ test('Validate schema file',
      compile_schemas,
      args: ['--strict', '--dry-run', meson.current_source_dir()])
 
-subdir('lib')
+sources = gnome.compile_resources('togethershell-resources',
+	'together-shell.gresource.xml',
+	c_name: 'together_shell'
+)
+
 subdir('icons')
