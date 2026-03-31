@@ -9,9 +9,9 @@ namespace TogetherShell {
             if (!bindings.is_empty)
                 return;
 
-            var volume_up_bind = new Wayfire.Binding ("KEY_VOLUMEUP");
+            var volume_up_bind = new Wayfire.Binding ("KEY_VOLUMEUP", false, Wayfire.BindingMode.REPEAT);
             volume_up_bind.triggered.connect (() => { wireplumber.default_speaker.volume += 0.05; });
-            var volume_down_bind = new Wayfire.Binding ("KEY_VOLUMEDOWN");
+            var volume_down_bind = new Wayfire.Binding ("KEY_VOLUMEDOWN", false, Wayfire.BindingMode.REPEAT);
             volume_down_bind.triggered.connect (() => { wireplumber.default_speaker.volume -= 0.05; });
             bindings.add_all_array ({ volume_down_bind, volume_up_bind });
 

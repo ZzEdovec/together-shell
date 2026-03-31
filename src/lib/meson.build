@@ -105,6 +105,7 @@ libtogethershell_sources += [
 	'wayfire/command/bindings.vala',
 	'shell_ui/level_popup.vala',
 	'shell_ui/popups_manager.vala',
+	'shell_ui/panel_popup.vala',
 	wlr_toplevel_code,
 	wf_shell_code,
 #	wg_dodge_code,

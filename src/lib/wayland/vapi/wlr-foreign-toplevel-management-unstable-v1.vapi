@@ -15,7 +15,7 @@ namespace Zwlr {
         public void stop ();
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_add_listener")]
-        public int add_listener (ref ForeignToplevelManagerV1Listener listener, void* data = null);
+        public int add_listener (ForeignToplevelManagerV1Listener listener, void* data = null);
 
         [CCode (cname = "zwlr_foreign_toplevel_manager_v1_set_user_data")]
         public void set_user_data (void* user_data);
@@ -67,6 +67,7 @@ namespace Zwlr {
         public void close();
 
         [CCode (cname = "zwlr_foreign_toplevel_handle_v1_destroy")]
+        [DestroysInstance]
         public void destroy(); // Taken out separately, because most likely you will not be able to own the handle (only unowned), which is why vala will not call free_function on its own.
 
         [CCode (cname = "zwlr_foreign_toplevel_handle_v1_set_rectangle")]
@@ -79,7 +80,7 @@ namespace Zwlr {
         public void unset_fullscreen();
 
         [CCode (cname = "zwlr_foreign_toplevel_handle_v1_add_listener")]
-        public int add_listener(ref ForeignToplevelHandleV1Listener listener, void* data = null);
+        public int add_listener(ForeignToplevelHandleV1Listener listener, void* data = null);
 
         [CCode (cname = "zwlr_foreign_toplevel_handle_v1_set_user_data")]
         public void set_user_data(void* user_data);
