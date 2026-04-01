@@ -1,5 +1,6 @@
 window_list_sources = [
 	'window-list.vala',
+	'window-button.vala',
 ]
 
 window_list_plugin = shared_library(
