@@ -1,11 +1,10 @@
-using TogetherShell;
+using TogetherCore;
 using TogetherWayland;
 
 namespace WindowList {
     public class WindowList : Gtk.Box {
         private Registry registry = new Registry ();
         private ToplevelManager toplevel_manager;
-        private AstalApps.Apps apps = new AstalApps.Apps ();
         private ulong? window_added_id;
 
         public WindowList () {
@@ -20,7 +19,7 @@ namespace WindowList {
             window_added_id = registry.toplevel_manager.window_added.connect (window_added);
         }
 
-        ~WindowList () { // Maybe not work due to bad memory managment, check needed (хранит ссылку на класс)
+        ~WindowList () {
             if (window_added_id != null)
                 toplevel_manager.disconnect (window_added_id);
         }
@@ -50,11 +49,11 @@ namespace WindowList {
         }
     }
 
-    public class Plugin : Peas.ExtensionBase, TogetherShell.Plugin {
-        private PanelContext ctx;
+    public class Plugin : Peas.ExtensionBase, Interfaces.Shell.Plugin {
+        private Interfaces.Shell.PanelContext ctx;
         private WindowList list = new WindowList ();
 
-        public void activate (PanelContext ctx) {
+        public void activate (Interfaces.Shell.PanelContext ctx) {
             this.ctx = ctx;
         }
 
@@ -68,5 +67,5 @@ namespace WindowList {
 
 [ModuleInit]
 public void peas_register_types (TypeModule module) {
-    ((Peas.ObjectModule) module).register_extension_type (typeof (TogetherShell.Plugin), typeof (WindowListPlugin.Plugin));
+    ((Peas.ObjectModule) module).register_extension_type (typeof (Interfaces.Shell.Plugin), typeof (WindowList.Plugin));
 }

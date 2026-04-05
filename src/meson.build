@@ -9,11 +9,9 @@ deps = [
 	dependency('gtk4-wayland'),
 	dependency('astal-wireplumber-0.1'),
 	dependency('astal-mpris-0.1'),
-	dependency('astal-apps-0.1'),
 	config_dep,
-	wayfire_dep,
 	wayland_dep,
-	api_dep,
+	core_dep,
 ]
 
 subdir ('plugins')

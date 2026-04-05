@@ -1,14 +1,9 @@
-namespace TogetherShell {
-    public enum PanelPosition {
-        BOTTOM,
-        TOP,
-        LEFT,
-        RIGHT
-    }
+using TogetherCore;
 
+namespace TogetherCore.Interfaces.Shell {
     public interface PanelContext : Gtk.Widget {
-        public signal void position_changed (PanelPosition pos);
-        public abstract PanelPosition get_panel_position ();
+        public signal void position_changed (Settings.Shell.PanelPosition pos);
+        public abstract Settings.Shell.PanelPosition get_panel_position ();
     }
 
     public interface Plugin : Object {

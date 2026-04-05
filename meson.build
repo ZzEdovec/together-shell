@@ -31,9 +31,8 @@ add_project_arguments('-DGETTEXT_PACKAGE="' + meson.project_name () + '"', langu
 #wayland_dep = libtogether_wayland_dep
 #api_dep = libtogether_api_dep
 
-wayfire_dep = dependency('together-wayfire-0.1', fallback: ['libtogether-wayfire', 'libtogether_wayfire_dep'])
 wayland_dep = dependency('together-wayland-0.1', fallback: ['libtogether-wayland', 'libtogether_wayland_dep'])
-api_dep = dependency('together-plugin-api-0.1', fallback: ['libtogether-shell-plugin-api', 'libtogether_api_dep'])
+core_dep = dependency('together-core-0.1', fallback: ['libtogether-core', 'libtogether_core_dep'])
 
 subdir('data')
 subdir('src')

@@ -1,4 +1,4 @@
-namespace TogetherWayfire {
+namespace TogetherWayland.Wayfire {
     private class SourceKeeper {
         public SourceFunc callback;
 

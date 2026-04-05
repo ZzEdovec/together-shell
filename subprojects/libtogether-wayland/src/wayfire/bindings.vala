@@ -1,4 +1,4 @@
-namespace TogetherWayfire {
+namespace TogetherWayland.Wayfire {
     public enum BindingMode {
         RELEASE,
         REPEAT

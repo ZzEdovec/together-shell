@@ -50,13 +50,15 @@ vapi_dir = meson.current_source_dir() / 'vapi'
 vala_comp = meson.get_compiler('vala')
 
 deps = [
-	dependency('gio-2.0'),
+	dependency('gio-unix-2.0'),
 	dependency('wayland-client'),
 	dependency('gee-0.8'),
 	dependency('gtk4'),
+	dependency('json-glib-1.0'),
 ]
 
 vala_deps = [
+	vala_comp.find_library('posix'),
 	vala_comp.find_library('wayfire-shell-unstable-v2', dirs: vapi_dir),
 	vala_comp.find_library('wlr-foreign-toplevel-management-unstable-v1', dirs: vapi_dir),
 	vala_comp.find_library('wayland-client', dirs: vapi_dir),
@@ -71,6 +73,9 @@ sources = [
 	'registry.vala',
 	'toplevel.vala',
 	'wf-shell.vala',
+	'wayfire/ipc.vala',
+	'wayfire/bindings.vala',
+	'wayfire/view.vala',
 ]
 
 lib = library(

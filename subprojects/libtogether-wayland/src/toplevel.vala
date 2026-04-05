@@ -1,15 +1,3 @@
-/**
- * TOGETHER SHELL CORE RUNTIME API
- *
- * This file defines objects managed exclusively by the Together Shell Core.
- *
- * FOR PLUGIN DEVELOPERS:
- * ACCESS: These objects are instantiated and managed by the Shell.
- * You receive them via provider methods.
- * LIFECYCLE: Do NOT attempt to create (new) instances of these classes.
- * Doing so will result in unlinked objects, memory corruption and Shell crash.
- */
-
 namespace TogetherWayland {
     public class ToplevelWindow : Object {
         private unowned Registry registry;
@@ -31,12 +19,13 @@ namespace TogetherWayland {
                 return _current_outputs.to_array ();
             }
         }
-        public string title { get; private set; }
-        public string app_id { get; private set; }
-        public bool maximized { get; private set; }
-        public bool minimized { get; private set; }
-        public bool activated { get; private set; }
-        public bool fullscreen { get; private set; }
+        public string? title { get; private set; }
+        public string? app_id { get; private set; }
+        public Wayfire.View? wf_view { get; private set; }
+        public bool maximized { get; private set; default = false; }
+        public bool minimized { get; private set; default = false; }
+        public bool activated { get; private set; default = false; }
+        public bool fullscreen { get; private set; default = false; }
         public ToplevelWindow? parent { get; private set; }
 
         public signal void output_enter (Output output);
@@ -62,7 +51,20 @@ namespace TogetherWayland {
         private static void on_appid (void* data, Zwlr.ForeignToplevelHandleV1 handle, string id) {
             var self = (ToplevelWindow) data;
 
-            self.app_id = id;
+            if (id.contains (",")) {
+                int comma_pos = id.index_of (",", 0);
+                int64 wf_id = int64.parse (id[comma_pos:]);
+
+                if (self.wf_view == null || self.wf_view.id != wf_id) {
+                    self.wf_view = new Wayfire.View (wf_id);
+                    Signal.emit_by_name (self, "notify::wf_view");
+                }
+
+                self.app_id = id[:-comma_pos];
+            }
+            else
+                self.app_id = id;
+
             Signal.emit_by_name (self, "notify::app_id");
         }
 
@@ -105,7 +107,6 @@ namespace TogetherWayland {
 
             var parent = self.registry.toplevel_manager.get_window (wl_parent);
             if (parent != null) {
-                print ("has parent!\n");
                 self.parent = parent;
                 Signal.emit_by_name (self, "notify::parent");
             }

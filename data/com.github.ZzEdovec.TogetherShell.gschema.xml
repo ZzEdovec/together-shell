@@ -1,28 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="together-shell">
-	<schema id="com.github.ZzEdovec.TogetherShell" path="/com/github/ZzEdovec/togethershell/">
-    <key name="panels" type="s">
-      <default>'{"panels":[{"position":"bottom","size":48,"plugins":["libtogethershell-panel-plugin-appmenu.so","libtogethershell-panel-plugin-windowlist.so","libtogethershell-panel-plugin-tray.so","togethershell-panel-plugin-controlcenter","libtogethershell-panel-plugin-time"]}]}'</default>
-      <summary>Panels and plugins settings</summary>
-      <description>Stores the position and size of panels, as well as plugins and their settings</description>
+  <enum id="com.github.ZzEdovec.TogetherShell.PanelPosition">
+    <value nick="top" value="0"/>
+    <value nick="bottom" value="1"/>
+    <value nick="left" value="2"/>
+    <value nick="right" value="3"/>
+  </enum>
+  <enum id="com.github.ZzEdovec.TogetherShell.BackgroundFit">
+    <value nick="fill" value="0"/>
+    <value nick="contain" value="1"/>
+    <value nick="cover" value="2"/>
+    <value nick="scale-down" value="3"/>
+  </enum>
+
+  <schema id="com.github.ZzEdovec.TogetherShell.Panel">
+    <key name="position" enum="com.github.ZzEdovec.TogetherShell.PanelPosition">
+      <default>'bottom'</default>
     </key>
-	  <key name="pinned" type="as">
+    <key name="size" type="u">
+      <default>48</default>
+    </key>
+    <key name="dock-mode" type="b">
+      <default>false</default>
+    </key>
+    <key name="plugins" type="as">
+      <default>[]</default>
+    </key>
+  </schema>
+
+	<schema id="com.github.ZzEdovec.TogetherShell" path="/com/github/ZzEdovec/TogetherShell/">
+    <key name="panels" type="as">
+      <default>[]</default>
+    </key>
+	  <key name="panel-pinned" type="as">
 	    <default>[]</default>
-      <summary>Pinned (favorite) apps</summary>
+      <summary>Panel pinned apps</summary>
+    </key>
+	  <key name="appmenu-pinned" type="as">
+	    <default>[]</default>
+      <summary>Application menu pinned apps</summary>
     </key>
 	  <key name="background" type="s">
 	    <default>'/home/queinu/Загрузки/anime-style-mythical-dragon-creature.jpg'</default>
 	    <summary>Background image path</summary>
 	  </key>
-	  <key name="background-fit" type="s">
+	  <key name="background-fit" enum="com.github.ZzEdovec.TogetherShell.BackgroundFit">
 	    <default>'fill'</default>
-	    <choices>
-	      <choice value="fill"/>
-	      <choice value="contain"/>
-	      <choice value="cover"/>
-	      <choice value="scale-down"/>
-	    </choices>
-	    <summary>Background fit mode</summary>
 	  </key>
 	</schema>
 </schemalist>
