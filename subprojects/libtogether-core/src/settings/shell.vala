@@ -89,7 +89,8 @@ namespace TogetherCore.Settings.Shell {
                 throw new PanelError.EXISTS (@"$app_id already pinned");
 
             var new_apps = _apps.to_array ();
-            settings.set_strv (key, new_apps += app_id);
+            new_apps += app_id;
+            settings.set_strv (key, new_apps);
         }
 
         public void repose_app (string app_id, int pos) throws PanelError {
@@ -114,7 +115,7 @@ namespace TogetherCore.Settings.Shell {
     public class Panel : Object {
         private GLib.Settings settings;
         public string uuid { get; internal set; }
-        public PluginsManager plugins_manager;
+        public PluginsManager plugins_manager { get; private set; }
         public PanelPosition position { get; set; }
         public uint size { get; set; }
 
@@ -207,11 +208,15 @@ namespace TogetherCore.Settings.Shell {
         public void create_panel () {
             var id = Uuid.string_random ();
             string[] panels = _panels.keys.to_array ();
+            panels += id;
 
-            settings.set_strv ("panels", panels += id);
+            settings.set_strv ("panels", panels);
         }
 
-        public void remove_panel (string id) {
+        public void remove_panel (string id) throws PanelError {
+            if (!_panels.has_key (id))
+                throw new PanelError.NOTEXISTS (@"Panel with id $id not exists");
+
             Panel panel;
             _panels.unset (id, out panel);
             settings.set_strv ("panels", _panels.keys.to_array ());

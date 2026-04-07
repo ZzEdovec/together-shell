@@ -1,3 +1,15 @@
+config = configure_file (
+	input: 'config.vala.in',
+	output: 'config.vala',
+	configuration : {
+		'LIBDIR': get_option('prefix') / get_option('libdir'),
+	}
+)
+
+config_dep = declare_dependency(
+	sources: [config]
+)
+
 deps = [
 	dependency('gio-unix-2.0'),
 	dependency('gee-0.8'),
@@ -25,7 +37,7 @@ sources = [
 lib = library(
 	name,
 	sources,
-	dependencies: lib_deps,
+	dependencies: deps,
 	vala_header: name + '-' + api_version + '.vapi',
 	version: version,
 	install: true,
