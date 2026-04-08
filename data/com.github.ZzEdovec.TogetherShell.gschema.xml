@@ -32,6 +32,12 @@
     <key name="panels" type="as">
       <default>[]</default>
     </key>
+	  <key name="window-list-labels" type="b">
+	    <default>true</default>
+	  </key>
+	  <key name="window-list-group" type="b">
+	    <default>true</default>
+	  </key>
 	  <key name="panel-pinned" type="as">
 	    <default>[]</default>
       <summary>Panel pinned apps</summary>

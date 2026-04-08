@@ -1,5 +1,8 @@
+using TogetherCore.Settings.Shell;
+using TogetherWayland;
+
 namespace TogetherShell {
-    public class Panel : Gtk.Window, PanelContext {
+    public class Panel : Gtk.Window, TogetherCore.Interfaces.Shell.PanelContext {
         private PanelPosition _panel_position;
         public Gtk.Box widgets_box { get; default = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0); }
         public PanelPosition panel_position {
@@ -29,7 +32,9 @@ namespace TogetherShell {
             present ();
         }
 
-        public PanelPosition get_panel_position () { return _panel_position; }
+        public TogetherCore.Settings.Shell.PanelPosition get_panel_position () {
+            return _panel_position;
+        }
 
         private void translate_json_position (string position) {
             switch (position) {

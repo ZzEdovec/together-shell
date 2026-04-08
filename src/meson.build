@@ -1,5 +1,4 @@
 deps = [
-	dependency('gtk4'),
 	dependency('json-glib-1.0'),
 	dependency('gtk4-layer-shell-0'),
 	dependency('libpeas-2'),

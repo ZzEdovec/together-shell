@@ -13,9 +13,9 @@ config_dep = declare_dependency(
 deps = [
 	dependency('gio-unix-2.0'),
 	dependency('gee-0.8'),
-	dependency('gtk4'),
 	dependency('libadwaita-1'),
 	dependency('libpeas-2'),
+	depepdency('gtk4-wayland'),
 	config_dep,
 ]
 
@@ -25,6 +25,7 @@ lib_deps = [
 	dependency('gtk4'),
 	dependency('libadwaita-1'),
 	dependency('libpeas-2'),
+	depepdency('gtk4-wayland'),
 ]
 
 sources = [

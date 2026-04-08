@@ -187,7 +187,9 @@ namespace TogetherCore.Settings.Shell {
     public class Settings : Object {
         private GLib.Settings settings = new GLib.Settings.with_path ("com.github.ZzEdovec.TogetherShell", "/com/github/ZzEdovec/TogetherShell/");
         private Gee.HashMap<string, Panel> _panels = new Gee.HashMap<string, Panel> ();
-        public Panel[] panels { owned get { return _panels.values.to_array (); } }
+        public Panel[] panels { owned get { return _panels.values.to_array (); }}
+        public bool show_window_labels { get; set; }
+        public bool group_windows { get; set; }
         public Background background { get; private set; }
         public PinnedApps panel_pinned { get; private set; }
         public PinnedApps menu_pinned { get; private set; }
@@ -199,6 +201,9 @@ namespace TogetherCore.Settings.Shell {
             background = new Background (settings);
             panel_pinned = new PinnedApps (settings, "panel-pinned");
             menu_pinned = new PinnedApps (settings, "appmenu-pinned");
+
+            settings.bind ("window-list-labels", this, "show_window_labels", SettingsBindFlags.DEFAULT);
+            settings.bind ("window-list-group", this, "group_windows", SettingsBindFlags.DEFAULT);
 
             update_panels ();
 
