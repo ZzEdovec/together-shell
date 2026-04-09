@@ -53,7 +53,7 @@ deps = [
 	dependency('gio-unix-2.0'),
 	dependency('wayland-client'),
 	dependency('gee-0.8'),
-	dependency('gtk4'),
+	dependency('gtk4-wayland'),
 	dependency('json-glib-1.0'),
 ]
 

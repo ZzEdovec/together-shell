@@ -9,7 +9,6 @@ namespace WindowList {
         private TogetherCore.Settings.Shell.Settings settings = new TogetherCore.Settings.Shell.Settings ();
         private AppInfoManager appinfo_manager = new AppInfoManager ();
         private Registry registry = new Registry ();
-        private Gtk.Revealer revealer = new Gtk.Revealer ();
         private Gtk.Label title = new Gtk.Label (_("Unknown app"));
         private Gtk.Image icon = new Gtk.Image ();
 
@@ -26,8 +25,7 @@ namespace WindowList {
             title.ellipsize = Pango.EllipsizeMode.MIDDLE;
             settings.bind_property ("show_window_labels", title, "visible", BindingFlags.SYNC_CREATE);
 
-            revealer.child = box;
-            child = revealer;
+            child = box;
 
             update_app_info ();
             foreach (var output in window.current_outputs)
@@ -38,12 +36,6 @@ namespace WindowList {
             window.state.connect (activate_window);
             window.output_enter.connect (check_output);
             window.output_leave.connect (check_output);
-        }
-
-        public override void realize () {
-            base.realize ();
-
-            revealer.reveal_child = true;
         }
 
         private void activate_window () {

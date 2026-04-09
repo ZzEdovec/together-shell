@@ -1,9 +1,10 @@
-using TogetherCore;
+using TogetherCore.Settings.Shell;
 
 namespace TogetherCore.Interfaces.Shell {
     public interface PanelContext : Gtk.ApplicationWindow {
-        public abstract TogetherCore.Settings.Shell.PanelPosition position { get; set; }
-        public signal void position_changed (Settings.Shell.PanelPosition pos);
+        public abstract PanelPosition position { get; set; }
+
+        public signal void position_changed (PanelPosition pos);
         public signal void widget_moved (Gtk.Widget widget);
     }
 

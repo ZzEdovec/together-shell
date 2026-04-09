@@ -188,12 +188,34 @@ namespace TogetherWayland {
             registry.display.flush ();
         }
 
-        public void toggle_fullscreen (Wl.Output? output = null) {
+        public void toggle_fullscreen (Output? output = null) {
             if (fullscreen)
                 handle.unset_fullscreen ();
             else
-                handle.set_fullscreen (output);
+                handle.set_fullscreen (output != null ? output.wl_output : null);
 
+            registry.display.flush ();
+        }
+
+        public void set_rectangle (Gtk.Window window, Gtk.Widget widget) {
+            var native = window.get_native ();
+            if (native == null) {
+                warning ("Cannot set rectangle: native is null\n");
+                return;
+            }
+            var surface = window.get_surface () as Gdk.Wayland.Surface;
+            if (surface == null) {
+                warning ("Cannot set rectangle: surface is null\n");
+                return;
+            }
+
+            Graphene.Rect bounds;
+            if (!widget.compute_bounds (window, out bounds)) {
+                warning ("Cannot set rectangle: failed to compute bounds\n");
+                return;
+            }
+
+            handle.set_rectangle (surface.get_wl_surface (), (int) bounds.get_x (), (int) bounds.get_y (), (int) bounds.get_width (), (int) bounds.get_height ());
             registry.display.flush ();
         }
 
