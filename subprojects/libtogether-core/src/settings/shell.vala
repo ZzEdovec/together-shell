@@ -9,6 +9,12 @@ namespace TogetherCore.Settings.Shell {
         RIGHT = 3
     }
 
+    public enum PanelAlignment {
+        START = 0,
+        CENTER = 1,
+        END = 2
+    }
+
     public enum BackgroundFit {
         FILL = 0,
         CONTAIN = 1,
@@ -114,10 +120,12 @@ namespace TogetherCore.Settings.Shell {
 
     public class Panel : Object {
         private GLib.Settings settings;
-        public string uuid { get; internal set; }
+        public string uuid { get; private set; }
         public PluginsManager plugins_manager { get; private set; }
         public PanelPosition position { get; set; }
+        public PanelAlignment alignment { get; set; } // TODO
         public uint size { get; set; }
+        public bool dock_mode { get; set; }
 
         public signal void plugin_position_changed (string plugin, int pos);
 
@@ -127,7 +135,9 @@ namespace TogetherCore.Settings.Shell {
             string[] plugins = settings.get_strv ("plugins");
 
             settings.bind ("position", this, "position", SettingsBindFlags.DEFAULT);
+            settings.bind ("alignment", this, "alignment", SettingsBindFlags.DEFAULT);
             settings.bind ("size", this, "size", SettingsBindFlags.DEFAULT);
+            settings.bind ("dock-mode", this, "dock_mode", SettingsBindFlags.DEFAULT);
 
             plugins_manager = new PluginsManager<Interfaces.Shell.Plugin> ("%s/TogetherShell".printf (Config.LIBDIR), plugins);
 
@@ -188,6 +198,7 @@ namespace TogetherCore.Settings.Shell {
         private GLib.Settings settings = new GLib.Settings.with_path ("com.github.ZzEdovec.TogetherShell", "/com/github/ZzEdovec/TogetherShell/");
         private Gee.HashMap<string, Panel> _panels = new Gee.HashMap<string, Panel> ();
         public Panel[] panels { owned get { return _panels.values.to_array (); }}
+        public bool opacity { get; set; }
         public bool show_window_labels { get; set; }
         public bool group_windows { get; set; }
         public Background background { get; private set; }
@@ -202,6 +213,7 @@ namespace TogetherCore.Settings.Shell {
             panel_pinned = new PinnedApps (settings, "panel-pinned");
             menu_pinned = new PinnedApps (settings, "appmenu-pinned");
 
+            settings.bind ("opacity", this, "opacity", SettingsBindFlags.DEFAULT);
             settings.bind ("window-list-labels", this, "show_window_labels", SettingsBindFlags.DEFAULT);
             settings.bind ("window-list-group", this, "group_windows", SettingsBindFlags.DEFAULT);
 
@@ -210,12 +222,16 @@ namespace TogetherCore.Settings.Shell {
             settings.changed["panels"].connect (update_panels);
         }
 
-        public void create_panel () {
+        public Panel create_panel () {
             var id = Uuid.string_random ();
+            var panel = new Panel (id);
+            _panels[id] = panel;
             string[] panels = _panels.keys.to_array ();
-            panels += id;
 
             settings.set_strv ("panels", panels);
+
+            panel_added (panel);
+            return panel;
         }
 
         public void remove_panel (string id) throws PanelError {
@@ -242,6 +258,7 @@ namespace TogetherCore.Settings.Shell {
             foreach (string id in to_remove) {
                 Panel panel;
                 _panels.unset (id, out panel);
+
                 panel_removed (panel);
             }
 
@@ -249,6 +266,7 @@ namespace TogetherCore.Settings.Shell {
                 if (!_panels.has_key (id)) {
                     var panel = new Panel (id);
                     _panels[id] = panel;
+
                     panel_added (panel);
                 }
             }

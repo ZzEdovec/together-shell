@@ -15,7 +15,7 @@ deps = [
 	dependency('gee-0.8'),
 	dependency('libadwaita-1'),
 	dependency('libpeas-2'),
-	depepdency('gtk4-wayland'),
+	dependency('gtk4-wayland'),
 	config_dep,
 ]
 
@@ -25,7 +25,7 @@ lib_deps = [
 	dependency('gtk4'),
 	dependency('libadwaita-1'),
 	dependency('libpeas-2'),
-	depepdency('gtk4-wayland'),
+	dependency('gtk4-wayland'),
 ]
 
 sources = [
@@ -54,4 +54,10 @@ import('pkgconfig').generate(
 	subdirs: name,
 	requires: lib_deps,
 	install_dir: get_option('libdir') / 'pkgconfig',
+)
+
+libtogether_core_dep = declare_dependency(
+	link_with: lib,
+	dependencies: lib_deps,
+	include_directories: include_directories('.'),
 )

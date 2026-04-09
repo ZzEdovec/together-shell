@@ -24,13 +24,6 @@ config_inc = include_directories('.')
 
 add_project_arguments('-DGETTEXT_PACKAGE="' + meson.project_name () + '"', language: 'c')
 
-#subdir('subprojects/libtogether-shell-plugin-api')
-#subdir('subprojects/libtogether-wayfire')
-#subdir('subprojects/libtogether-wayland')
-#wayfire_dep = libtogether_wayfire_dep
-#wayland_dep = libtogether_wayland_dep
-#api_dep = libtogether_api_dep
-
 wayland_dep = dependency('together-wayland-0.1', fallback: ['libtogether-wayland', 'libtogether_wayland_dep'])
 core_dep = dependency('together-core-0.1', fallback: ['libtogether-core', 'libtogether_core_dep'])
 

@@ -1,21 +1,8 @@
-/**
- * TOGETHER SHELL CORE RUNTIME API
- *
- * This file defines objects managed exclusively by the Together Shell Core.
- *
- * FOR PLUGIN DEVELOPERS:
- * ACCESS: These objects are instantiated and managed by the Shell.
- * You receive them via provider methods.
- * LIFECYCLE: Do NOT attempt to create (new) instances of these classes.
- * Doing so will result in unlinked objects, memory corruption and Shell crash.
- */
-
 public class TogetherShell.Application : Adw.Application {
-    public Gee.ArrayList<Panel> panels = new Gee.ArrayList<Panel> ();
-    //public PluginLoader plugin_loader = new PluginLoader ();
-    //public Registry reg = new Registry ();
     private PopupsManager popups_manager;
-    private BackgroundManager background_manager;
+    //private BackgroundManager background_manager;
+    private TogetherCore.Settings.Shell.Settings settings;
+    private Gee.HashMap<TogetherCore.Settings.Shell.Panel, Panel> panels = new Gee.HashMap<TogetherCore.Settings.Shell.Panel, Panel> ();
 
     public Application () {
         Object (
@@ -28,30 +15,41 @@ public class TogetherShell.Application : Adw.Application {
     public override void activate () {
         base.activate ();
 
-        // TODO: TOGETHER SHELL INITIAL SETUP APPLICATION
-
         popups_manager = new PopupsManager ();
-        background_manager = new BackgroundManager ();
+        //background_manager = new BackgroundManager ();
+        settings = new TogetherCore.Settings.Shell.Settings ();
+
         load_panels ();
+
+        settings.panel_added.connect (add_panel);
+        settings.panel_removed.connect (remove_panel);
+    }
+
+    private void add_panel (TogetherCore.Settings.Shell.Panel panel_settings) {
+        var panel = new Panel (panel_settings);
+        panels[panel_settings] = panel;
+
+        panel.present ();
+    }
+
+    private void remove_panel (TogetherCore.Settings.Shell.Panel panel_settings) {
+        Panel panel;
+        if (!panels.unset (panel_settings, out panel))
+            return;
+
+        panel.destroy ();
     }
 
     private void load_panels () {
-        var config_parser = new Json.Parser ();
-        var settings = new Settings (application_id);
-        try {config_parser.load_from_data (settings.get_string ("panels"));}
-        catch (Error e) {
-            critical ("Panels settings cannot be loaded!" + e.message + ". Make sure that gschema for Together Shell is installed correctly");
-            quit ();
+        var panels = settings.panels;
+        if (panels.length == 0) {
+            var panel = settings.create_panel ();
+            panels += panel;
         }
 
-        var root = config_parser.get_root ();
-        var root_obj = root.get_object ();
-
-        var panels = root_obj.get_array_member ("panels");
-        panels.foreach_element ((array, index, member_node) => {
-            Panel panel = new Panel (this, member_node.get_object ());
-            this.panels.add (panel);
-        });
+        foreach (var panel in panels) {
+            add_panel (panel);
+        }
     }
 }
 

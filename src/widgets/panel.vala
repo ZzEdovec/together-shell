@@ -1,26 +1,24 @@
 using TogetherCore.Settings.Shell;
+using TogetherCore;
 using TogetherWayland;
 
 namespace TogetherShell {
-    public class Panel : Gtk.Window, TogetherCore.Interfaces.Shell.PanelContext {
-        private PanelPosition _panel_position;
-        public Gtk.Box widgets_box { get; default = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0); }
-        public PanelPosition panel_position {
-            get { return _panel_position; }
+    public class Panel : Gtk.Window, TogetherCore.Interfaces.Shell.PanelContext { // TODO: DOCK MODE, WIDGET_MOVE SIGNAL
+        private TogetherCore.Settings.Shell.Panel settings;
+        private Gtk.Box widgets_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        public PanelPosition position {
+            get { return settings.position; }
             set {
-                set_anchor (value);
-                _panel_position = value;
+                settings.position = value;
+                upset_position ();
 
                 position_changed (value);
             }
         }
 
-        public Panel (TogetherShell.Application application, Json.Object config) {
-            Object (
-                application: application,
-                default_height: (int) config.get_int_member_with_default ("height", 48),
-                opacity: config.get_double_member_with_default ("opacity", 0.8)
-            );
+        public Panel (TogetherCore.Settings.Shell.Panel settings) {
+            this.settings = settings;
+            opacity = new TogetherCore.Settings.Shell.Settings ().opacity ? 0.8 : 1;
             child = widgets_box;
 
             GtkLayerShell.init_for_window (this);
@@ -28,44 +26,56 @@ namespace TogetherShell {
             GtkLayerShell.set_layer (this, GtkLayerShell.Layer.TOP);
             GtkLayerShell.set_keyboard_mode (this, GtkLayerShell.KeyboardMode.ON_DEMAND);
 
-            translate_json_position (config.get_string_member_with_default ("position", "bottom"));
-            present ();
-        }
+            upset_position ();
 
-        public TogetherCore.Settings.Shell.PanelPosition get_panel_position () {
-            return _panel_position;
-        }
+            settings.notify["position"].connect (upset_position);
+            settings.notify["size"].connect (update_size);
 
-        private void translate_json_position (string position) {
-            switch (position) {
-                case "bottom":
-                    panel_position = PanelPosition.BOTTOM;
-                break;
-                case "top":
-                    panel_position = PanelPosition.TOP;
-                break;
-                case "left":
-                    panel_position = PanelPosition.LEFT;
-                break;
-                case "right":
-                    panel_position = PanelPosition.RIGHT;
-                break;
+            for (uint i = 0; i < settings.plugins_manager.plugins.get_n_items (); i++) {
+                var obj = settings.plugins_manager.plugins.get_item (i);
+                if (obj != null)
+                    load_plugin ((Interfaces.Shell.Plugin) obj);
             }
+
+            settings.plugins_manager.plugins.extension_added.connect ((info, obj) => { load_plugin ((Interfaces.Shell.Plugin) obj); });
+            settings.plugins_manager.plugins.extension_removed.connect ((info, obj) => { unload_plugin ((Interfaces.Shell.Plugin) obj); });
         }
 
-        private void set_anchor (PanelPosition pos) {
+        private void load_plugin (Interfaces.Shell.Plugin plugin) {
+            plugin.activate (this);
+            var panel_widget = plugin.get_panel_widget ();
+            widgets_box.append (panel_widget);
+
+            var showable = plugin.get_showable_widget ();
+            if (showable != null && panel_widget is Gtk.ToggleButton)
+                new PanelPopup (this, (Gtk.ToggleButton) panel_widget, showable);
+        }
+
+        /*private void repos_plugin (Interfaces.Shell.Plugin ) { TODO
+
+        }*/
+
+        private void unload_plugin (Interfaces.Shell.Plugin plugin) {
+            widgets_box.remove (plugin.get_panel_widget ());
+        }
+
+        private void upset_position () {
             GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, false);
             GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
             GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, false);
             GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, false);
 
-            switch (pos) {
+            default_height = 0;
+            default_width = 0;
+
+            switch (settings.position) {
                 case PanelPosition.BOTTOM:
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
 
                     widgets_box.orientation = Gtk.Orientation.HORIZONTAL;
+                    default_height = (int) settings.size;
                 break;
                 case PanelPosition.TOP:
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
@@ -73,6 +83,7 @@ namespace TogetherShell {
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
 
                     widgets_box.orientation = Gtk.Orientation.HORIZONTAL;
+                    default_height = (int) settings.size;
                 break;
                 case PanelPosition.LEFT:
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
@@ -80,6 +91,7 @@ namespace TogetherShell {
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
 
                     widgets_box.orientation = Gtk.Orientation.VERTICAL;
+                    default_width = (int) settings.size;
                 break;
                 case PanelPosition.RIGHT:
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
@@ -87,8 +99,16 @@ namespace TogetherShell {
                     GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
 
                     widgets_box.orientation = Gtk.Orientation.VERTICAL;
+                    default_width = (int) settings.size;
                 break;
             }
+        }
+
+        private void update_size () {
+            if (default_height > 0)
+                default_height = (int) settings.size;
+            else
+                default_width = (int) settings.size;
         }
     }
 }

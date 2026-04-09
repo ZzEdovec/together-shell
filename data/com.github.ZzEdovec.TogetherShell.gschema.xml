@@ -6,6 +6,11 @@
     <value nick="left" value="2"/>
     <value nick="right" value="3"/>
   </enum>
+  <enum id="com.github.ZzEdovec.TogetherShell.PanelAlignment">
+    <value nick="start" value="0"/>
+    <value nick="center" value="1"/>
+    <value nick="end" value="2"/>
+  </enum>
   <enum id="com.github.ZzEdovec.TogetherShell.BackgroundFit">
     <value nick="fill" value="0"/>
     <value nick="contain" value="1"/>
@@ -16,6 +21,9 @@
   <schema id="com.github.ZzEdovec.TogetherShell.Panel">
     <key name="position" enum="com.github.ZzEdovec.TogetherShell.PanelPosition">
       <default>'bottom'</default>
+    </key>
+    <key name="alignment" enum="com.github.ZzEdovec.TogetherShell.PanelAlignment">
+      <default>'center'</default>
     </key>
     <key name="size" type="u">
       <default>48</default>
@@ -32,6 +40,9 @@
     <key name="panels" type="as">
       <default>[]</default>
     </key>
+	  <key name="opacity" type="b">
+	    <default>true</default>
+	  </key>
 	  <key name="window-list-labels" type="b">
 	    <default>true</default>
 	  </key>

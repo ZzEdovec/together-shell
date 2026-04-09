@@ -1,60 +1,55 @@
 using TogetherCore;
+using TogetherCore.Settings.Shell;
 using TogetherWayland;
 
 namespace WindowList {
     public class WindowList : Gtk.Box {
         private Registry registry = new Registry ();
-        private ToplevelManager toplevel_manager;
-        private ulong? window_added_id;
+        private Interfaces.Shell.PanelContext panel;
+        private Gee.HashMap<ToplevelWindow, WindowButton> buttons = new Gee.HashMap<ToplevelWindow, WindowButton> ();
 
-        public WindowList () {
-            hexpand = true;
-            start ();
-        }
+        public WindowList (Interfaces.Shell.PanelContext panel) {
+            this.panel = panel;
 
-        private void start () {
+            if (registry.toplevel_manager == null) {
+                critical ("Cannot get ToplevelManager\n");
+                return;
+            }
+
+            update_orientation (panel.position);
             foreach (var window in registry.toplevel_manager.windows)
                 window_added (window);
 
-            window_added_id = registry.toplevel_manager.window_added.connect (window_added);
-        }
-
-        ~WindowList () {
-            if (window_added_id != null)
-                toplevel_manager.disconnect (window_added_id);
+            panel.position_changed.connect (update_orientation);
+            registry.toplevel_manager.window_added.connect (window_added);
         }
 
         private void window_added (ToplevelWindow window) {
-            var revealer = new Gtk.Revealer ();
-            var button = new Gtk.ToggleButton ();
-            var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
-            var icon = new Gtk.Image ();
-            var label = new Gtk.Label (window.title ?? _("Unknown app"));
+            var button = new WindowButton (window);
+            buttons[window] = button;
+        }
 
-            revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_LEFT;
-            revealer.child = button;
-
-            label.max_width_chars = 50;
-            label.ellipsize = Pango.EllipsizeMode.END;
-
-            box.margin_start = box.margin_end = 8;
-            box.append (icon);
-            box.append (label);
-
-            button.child = box;
-            button.css_classes = {"flat", "panel-task-button"};
-
-            append (revealer);
-            revealer.reveal_child = true;
+        private void update_orientation (PanelPosition pos) { // TODO disable button labels when vertical
+            switch (pos) {
+                case (PanelPosition.TOP):
+                case (PanelPosition.BOTTOM):
+                    orientation = Gtk.Orientation.HORIZONTAL;
+                break;
+                case (PanelPosition.LEFT):
+                case (PanelPosition.RIGHT):
+                    orientation = Gtk.Orientation.VERTICAL;
+                break;
+            }
         }
     }
 
     public class Plugin : Peas.ExtensionBase, Interfaces.Shell.Plugin {
         private Interfaces.Shell.PanelContext ctx;
-        private WindowList list = new WindowList ();
+        private WindowList list;
 
         public void activate (Interfaces.Shell.PanelContext ctx) {
             this.ctx = ctx;
+            this.list = new WindowList (ctx);
         }
 
         public Gtk.Widget get_panel_widget () {

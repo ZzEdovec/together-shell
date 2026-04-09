@@ -1,6 +1,6 @@
 [SingleInstance]
 public class TogetherCore.Managers.AppInfoManager : Object {
-    private Gee.HashMap<string, DesktopAppInfo> apps_list { get; default = new Gee.HashMap<string, DesktopAppInfo> (); }
+    private Gee.HashMap<string, DesktopAppInfo> apps_list = new Gee.HashMap<string, DesktopAppInfo> ();
     private AppInfoMonitor apps_monitor = AppInfoMonitor.get ();
 
     public signal void app_added (string app);
@@ -8,9 +8,6 @@ public class TogetherCore.Managers.AppInfoManager : Object {
     public signal void app_removed (string app);
 
     construct {
-        if (!apps_list.is_empty)
-            return;
-
         update_apps_list ();
         apps_monitor.changed.connect (update_apps_list);
     }

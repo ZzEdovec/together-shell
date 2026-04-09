@@ -4,29 +4,35 @@ using TogetherCore.Managers;
 
 namespace WindowList {
     public class WindowButton : Gtk.ToggleButton {
-        private unowned Interfaces.Shell.PanelContext panel;
         private ToplevelWindow window;
+        private TogetherCore.Settings.Shell.Settings settings = new TogetherCore.Settings.Shell.Settings ();
         private AppInfoManager appinfo_manager = new AppInfoManager ();
+        private Registry registry = new Registry ();
         private Gtk.Revealer revealer = new Gtk.Revealer ();
         private Gtk.Label title = new Gtk.Label (_("Unknown app"));
         private Gtk.Image icon = new Gtk.Image ();
 
         public WindowButton (ToplevelWindow window) {
             this.window = window;
+            this.css_classes = {"flat", "panel-task-button"};
 
             var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
             box.margin_start = box.margin_end = 8;
             box.append (title);
             box.append (icon);
 
+            title.max_width_chars = 40;
+            title.ellipsize = Pango.EllipsizeMode.MIDDLE;
+            settings.bind_property ("show_window_labels", title, "visible", BindingFlags.SYNC_CREATE);
+
             revealer.child = box;
             child = revealer;
 
             window.notify["title"].connect (update_app_info);
             window.notify["app_id"].connect (update_app_info);
-            window.state.connect (update_window_state);
-            window.output_enter.connect (update_outputs);
-            window.output_leave.connect (update_outputs);
+            window.state.connect (() => { active = window.activated; });
+            window.output_enter.connect (check_output);
+            window.output_leave.connect (check_output);
         }
 
         private void update_app_info () {
@@ -42,28 +48,8 @@ namespace WindowList {
                 icon.icon_name = "application-x-executable-symbolic";
         }
 
-        private void update_window_state () {
-            active = window.activated;
-        }
-
-        private void update_outputs () {
-            var registry = new Registry ();
-            var native = panel.get_native ();
-            var surface = native.get_surface ();
-
-            foreach (var output in window.current_outputs) {
-                var wl_output = ((Gdk.Wayland.Monitor) native.get_display ().get_monitor_at_surface (surface)).get_wl_output ();
-                if (registry.outputs_keeper.get_output (wl_output) == output) {
-                    visible = true;
-                    return;
-                }
-            }
-
-            visible = false;
-        }
-
-        private void on_output_leave (Output output) {
-
+        private void check_output (Output output) {
+            visible = output == registry.outputs_keeper.get_output_by_widget (this);
         }
     }
 }
