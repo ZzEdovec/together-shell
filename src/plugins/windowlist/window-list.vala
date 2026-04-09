@@ -25,7 +25,7 @@ namespace WindowList {
             registry.toplevel_manager.window_added.connect (handle_window);
         }
 
-        private void handle_window (ToplevelWindow window) {
+        private void handle_window (ToplevelWindow window) {print ("new window\n");
             add_button (window);
             window.closed.connect (remove_button);
         }
@@ -41,7 +41,7 @@ namespace WindowList {
             append (revealer);
 
             revealer.reveal_child = true;
-            Timeout.add_once (revealer.transition_duration, () => {window.set_rectangle (panel, revealer);});
+            Timeout.add_once (revealer.transition_duration, () => { window.set_rectangle (panel, revealer); });
         }
 
         private void remove_button (ToplevelWindow window) {
@@ -49,27 +49,34 @@ namespace WindowList {
             if (!revealers.unset (window, out revealer))
                 return;
 
-            revealer.notify["child_revealed"].connect (() => { remove (revealer); });
             revealer.reveal_child = false;
+            Timeout.add_once (revealer.transition_duration, () => {
+                remove (revealer);
+                reset_rectangles ();
+            });
+        }
+
+        private void reset_rectangles () {
+            foreach (var entry in revealers)
+                entry.key.set_rectangle (panel, entry.value);
         }
 
         private void update_orientation (PanelPosition pos) { // TODO disable button labels when vertical
-            Gtk.RevealerTransitionType transition_type;
             switch (pos) {
                 case (PanelPosition.TOP):
-                    transition_type = Gtk.RevealerTransitionType.SWING_DOWN;
+                    transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
                     orientation = Gtk.Orientation.HORIZONTAL;
                 break;
                 case (PanelPosition.BOTTOM):
-                    transition_type = Gtk.RevealerTransitionType.SWING_UP;
+                    transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
                     orientation = Gtk.Orientation.HORIZONTAL;
                 break;
                 case (PanelPosition.LEFT):
-                    transition_type = Gtk.RevealerTransitionType.SWING_RIGHT;
+                    transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
                     orientation = Gtk.Orientation.VERTICAL;
                 break;
                 case (PanelPosition.RIGHT):
-                    transition_type = Gtk.RevealerTransitionType.SWING_LEFT;
+                    transition_type = Gtk.RevealerTransitionType.SLIDE_LEFT;
                     orientation = Gtk.Orientation.VERTICAL;
                 break;
             }

@@ -5,7 +5,7 @@ namespace TogetherWayland {
         public OutputsKeeper? outputs_keeper { get; private set; }
         public WayfireShellManager? wayfire_shell_manager { get; private set; }
         public Wl.Seat? seat_proxy;
-        public unowned Wl.Display display = ((Gdk.Wayland.Display) Gdk.Display.get_default ()).get_wl_display ();
+        internal unowned Wl.Display display = ((Gdk.Wayland.Display) Gdk.Display.get_default ()).get_wl_display ();
         private IOChannel dispatch_channel;
         private uint? dispatch_id;
         private const Wl.RegistryListener registry_listener = {
@@ -13,10 +13,7 @@ namespace TogetherWayland {
             on_global_remove
         };
 
-        public Registry () {
-            if (dispatch_id != null)
-                return;
-
+        construct {
             int fd = display.get_fd ();
             dispatch_channel = new IOChannel.unix_new (fd);
             dispatch_channel.set_close_on_unref (true);
@@ -29,7 +26,7 @@ namespace TogetherWayland {
                 return false;
             });
 
-            var registry = display.get_registry();
+            var registry = display.get_registry ();
             outputs_keeper = new OutputsKeeper (this);
 
             registry.add_listener (registry_listener, this);

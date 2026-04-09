@@ -28,17 +28,23 @@ namespace WindowList {
             child = box;
 
             update_app_info ();
-            foreach (var output in window.current_outputs)
-                check_output (output);
+            check_active ();
 
             window.notify["title"].connect (update_app_info);
             window.notify["app_id"].connect (update_app_info);
-            window.state.connect (activate_window);
+            window.state.connect (check_active);
             window.output_enter.connect (check_output);
             window.output_leave.connect (check_output);
         }
 
-        private void activate_window () {
+        public override void map () {
+            base.map ();
+
+            foreach (var output in window.current_outputs)
+                check_output (output);
+        }
+
+        private void check_active () {
             if (toggle_block)
                 return;
 
