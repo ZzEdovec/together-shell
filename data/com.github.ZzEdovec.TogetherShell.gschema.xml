@@ -32,7 +32,7 @@
       <default>false</default>
     </key>
     <key name="plugins" type="as">
-      <default>[]</default>
+      <default>['window-list']</default>
     </key>
   </schema>
 

@@ -1,7 +1,7 @@
 namespace TogetherWayland.Wayfire {
     public class View : Object {
-        public int64 id;
-        public View (int64 view_id) {
+        public int id;
+        public View (int view_id) {
             id = view_id;
         }
     }

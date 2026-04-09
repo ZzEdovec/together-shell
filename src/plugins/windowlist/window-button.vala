@@ -4,6 +4,7 @@ using TogetherCore.Managers;
 
 namespace WindowList {
     public class WindowButton : Gtk.ToggleButton {
+        private bool toggle_block = false;
         private ToplevelWindow window;
         private TogetherCore.Settings.Shell.Settings settings = new TogetherCore.Settings.Shell.Settings ();
         private AppInfoManager appinfo_manager = new AppInfoManager ();
@@ -18,8 +19,8 @@ namespace WindowList {
 
             var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
             box.margin_start = box.margin_end = 8;
-            box.append (title);
             box.append (icon);
+            box.append (title);
 
             title.max_width_chars = 40;
             title.ellipsize = Pango.EllipsizeMode.MIDDLE;
@@ -28,11 +29,43 @@ namespace WindowList {
             revealer.child = box;
             child = revealer;
 
+            update_app_info ();
+            foreach (var output in window.current_outputs)
+                check_output (output);
+
             window.notify["title"].connect (update_app_info);
             window.notify["app_id"].connect (update_app_info);
-            window.state.connect (() => { active = window.activated; });
+            window.state.connect (activate_window);
             window.output_enter.connect (check_output);
             window.output_leave.connect (check_output);
+        }
+
+        public override void realize () {
+            base.realize ();
+
+            revealer.reveal_child = true;
+        }
+
+        private void activate_window () {
+            if (toggle_block)
+                return;
+
+            toggle_block = true;
+            active = window.activated;
+            toggle_block = false;
+        }
+
+        public override void toggled () {
+            if (toggle_block)
+                return;
+
+            toggle_block = true;
+            if (active && !window.activated)
+                window.activate ();
+            else if (window.activated)
+                window.minimize ();
+
+            toggle_block = false;
         }
 
         private void update_app_info () {

@@ -38,7 +38,7 @@ namespace TogetherShell {
                     load_plugin ((Interfaces.Shell.Plugin) obj);
             }
 
-            settings.plugins_manager.plugins.extension_added.connect ((info, obj) => { load_plugin ((Interfaces.Shell.Plugin) obj); });
+            settings.plugins_manager.plugins.extension_added.connect ((info, obj) => { print(info.name); load_plugin ((Interfaces.Shell.Plugin) obj); });
             settings.plugins_manager.plugins.extension_removed.connect ((info, obj) => { unload_plugin ((Interfaces.Shell.Plugin) obj); });
         }
 

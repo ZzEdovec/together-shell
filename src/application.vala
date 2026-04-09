@@ -1,6 +1,6 @@
 public class TogetherShell.Application : Adw.Application {
     private PopupsManager popups_manager;
-    //private BackgroundManager background_manager;
+    private BackgroundManager background_manager;
     private TogetherCore.Settings.Shell.Settings settings;
     private Gee.HashMap<TogetherCore.Settings.Shell.Panel, Panel> panels = new Gee.HashMap<TogetherCore.Settings.Shell.Panel, Panel> ();
 
@@ -15,8 +15,8 @@ public class TogetherShell.Application : Adw.Application {
     public override void activate () {
         base.activate ();
 
-        //popups_manager = new PopupsManager ();
-        //background_manager = new BackgroundManager ();
+        popups_manager = new PopupsManager ();
+        background_manager = new BackgroundManager ();
         settings = new TogetherCore.Settings.Shell.Settings ();
 
         load_panels ();

@@ -51,16 +51,10 @@ namespace TogetherWayland {
         private static void on_appid (void* data, Zwlr.ForeignToplevelHandleV1 handle, string id) {
             var self = (ToplevelWindow) data;
 
-            if (id.contains (",")) {
-                int comma_pos = id.index_of (",", 0);
-                int64 wf_id = int64.parse (id[comma_pos:]);
-
-                if (self.wf_view == null || self.wf_view.id != wf_id) {
-                    self.wf_view = new Wayfire.View (wf_id);
-                    Signal.emit_by_name (self, "notify::wf_view");
-                }
-
-                self.app_id = id[:-comma_pos];
+            if (id.contains (" ")) { // Wayfire full app_id mode
+                var ids = id.split (" ");
+                self.app_id = ids[1] == "" ? ids[0] : ids[1];
+                self.wf_view = new Wayfire.View (int.parse (ids[2][7:]));
             }
             else
                 self.app_id = id;

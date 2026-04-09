@@ -18,15 +18,29 @@ namespace WindowList {
 
             update_orientation (panel.position);
             foreach (var window in registry.toplevel_manager.windows)
-                window_added (window);
+                handle_window (window);
 
             panel.position_changed.connect (update_orientation);
-            registry.toplevel_manager.window_added.connect (window_added);
+            registry.toplevel_manager.window_added.connect (handle_window);
         }
 
-        private void window_added (ToplevelWindow window) {
+        private void handle_window (ToplevelWindow window) {
+            add_button (window);
+            window.closed.connect (remove_button);
+        }
+
+        private void add_button (ToplevelWindow window) {
             var button = new WindowButton (window);
             buttons[window] = button;
+            append (button);
+        }
+
+        private void remove_button (ToplevelWindow window) {
+            WindowButton button;
+            if (!buttons.unset (window, out button))
+                return;
+
+            remove (button);
         }
 
         private void update_orientation (PanelPosition pos) { // TODO disable button labels when vertical

@@ -1,9 +1,9 @@
 public class TogetherCore.Managers.PluginsManager<T> {
-    private Peas.Engine engine = new Peas.Engine.with_nonglobal_loaders ();
+    private Peas.Engine engine = new Peas.Engine ();
     public Peas.ExtensionSet plugins { get; private set; } // TODO
 
     public PluginsManager (string path, string[] plugins) {
-        engine.add_search_path (path, null);
+        engine.add_search_path (path, path);
         engine.set_loaded_plugins (plugins);
 
         this.plugins = new Peas.ExtensionSet.with_properties (engine, typeof (T), {}, {});
