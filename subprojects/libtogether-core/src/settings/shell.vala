@@ -195,7 +195,7 @@ namespace TogetherCore.Settings.Shell {
 
     [SingleInstance]
     public class Settings : Object {
-        private GLib.Settings settings = new GLib.Settings.with_path ("com.github.ZzEdovec.TogetherShell", "/com/github/ZzEdovec/TogetherShell/");
+        private GLib.Settings settings = new GLib.Settings ("com.github.ZzEdovec.TogetherShell");
         private Gee.HashMap<string, Panel> _panels = new Gee.HashMap<string, Panel> ();
         public Panel[] panels { owned get { return _panels.values.to_array (); }}
         public bool opacity { get; set; }
@@ -223,7 +223,7 @@ namespace TogetherCore.Settings.Shell {
         }
 
         public Panel create_panel () {
-            var id = Uuid.string_random ();
+            var id = Uuid.string_random ().replace ("-", "_");
             var panel = new Panel (id);
             _panels[id] = panel;
             string[] panels = _panels.keys.to_array ();
@@ -273,3 +273,4 @@ namespace TogetherCore.Settings.Shell {
         }
     }
 }
+

@@ -1,7 +1,7 @@
 using TogetherCore;
 
 namespace TogetherCore.Interfaces.Shell {
-    public interface PanelContext : Gtk.Widget {
+    public interface PanelContext : Gtk.ApplicationWindow {
         public abstract TogetherCore.Settings.Shell.PanelPosition position { get; set; }
         public signal void position_changed (Settings.Shell.PanelPosition pos);
         public signal void widget_moved (Gtk.Widget widget);

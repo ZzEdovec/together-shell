@@ -15,7 +15,7 @@ public class TogetherShell.Application : Adw.Application {
     public override void activate () {
         base.activate ();
 
-        popups_manager = new PopupsManager ();
+        //popups_manager = new PopupsManager ();
         //background_manager = new BackgroundManager ();
         settings = new TogetherCore.Settings.Shell.Settings ();
 
@@ -26,7 +26,7 @@ public class TogetherShell.Application : Adw.Application {
     }
 
     private void add_panel (TogetherCore.Settings.Shell.Panel panel_settings) {
-        var panel = new Panel (panel_settings);
+        var panel = new Panel (this, panel_settings);
         panels[panel_settings] = panel;
 
         panel.present ();
@@ -61,3 +61,4 @@ int main (string[] args) {
     var app = new TogetherShell.Application ();
     return app.run (args);
 }
+
