@@ -12,8 +12,6 @@ namespace WindowList {
         private Gtk.Label title = new Gtk.Label (_("Unknown app"));
         private Gtk.Image icon = new Gtk.Image ();
 
-        public signal void drag_started (double x, double y);
-
         public WindowButton (ToplevelWindow window) {
             this.window = window;
             this.css_classes = {"flat", "panel-task-button"};
@@ -22,10 +20,6 @@ namespace WindowList {
             box.margin_start = box.margin_end = 8;
             box.append (icon);
             box.append (title);
-
-            var drag_gesture = new Gtk.GestureDrag ();
-            drag_gesture.drag_begin.connect ((x, y) => { drag_started (x, y); });
-            add_controller (drag_gesture);
 
             title.max_width_chars = 40;
             title.ellipsize = Pango.EllipsizeMode.MIDDLE;
@@ -90,3 +84,4 @@ namespace WindowList {
         }
     }
 }
+

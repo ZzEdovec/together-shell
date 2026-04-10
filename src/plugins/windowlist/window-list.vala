@@ -3,50 +3,74 @@ using TogetherCore.Settings.Shell;
 using TogetherWayland;
 
 namespace WindowList {
-    public sealed class WindowsArea : Gtk.Overlay {
-        private WindowButton draggable;
-        private WindowList list;
-        private Gtk.GestureDrag gesture = new Gtk.GestureDrag ();
-        private Gtk.Fixed fixed = new Gtk.Fixed ();
+    public errordomain DraggableError {
+        ALREADY_BINDED,
+        NOT_BINDED
+    }
+
+    public sealed class DraggableArea : Gtk.Fixed {
+        private Gtk.Widget? draggable;
+        private Gee.HashMap<Gtk.Widget, Gtk.Box> binded = new Gee.HashMap<Gtk.Widget, Gtk.Box> ();
 
         private double start_x;
         private double start_y;
         private double current_x;
         private double current_y;
 
-        public WindowsArea (Interfaces.Shell.PanelContext panel) {
-            list = new WindowList (panel, this);
-
-            child = list;
-            add_overlay (fixed);
-            set_measure_overlay (fixed, false);
-
-            gesture.drag_update.connect (on_drag_update);
-            gesture.drag_end.connect (on_drag_end);
+        construct {
+            visible = false;
         }
 
-        public void start_drag (WindowButton button, double x, double y) {
+        public void bind_widget (Gtk.Box parent, Gtk.Widget widget) throws DraggableError {
+            if (binded.has_key (widget))
+                throw new DraggableError.ALREADY_BINDED ("Already binded");
+
+            binded[widget] = parent;
+
+            var controller = new Gtk.GestureDrag ();
+            controller.drag_begin.connect ((x, y) => { on_drag_start (widget, x, y); });
+            controller.drag_update.connect (on_drag_update);
+            controller.drag_end.connect (on_drag_end);
+
+            widget.add_controller (controller);
+            widget.set_data<Gtk.GestureDrag> ("drag_area_gest", controller);
+        }
+
+        public void unbind_widget (Gtk.Widget widget) throws DraggableError {
+            var controller = widget.get_data<Gtk.GestureDrag?> ("drag_area_gest");
+            if (controller == null || !binded.has_key (widget))
+                throw new DraggableError.NOT_BINDED ("Not binded");
+
+            widget.remove_controller (controller);
+            binded.unset (widget);
+            widget.set_data<Gtk.GestureDrag?> ("drag_area_gest", null);
+        }
+
+        public void on_drag_start (Gtk.Widget widget, double x, double y) {
+            if (draggable != null)
+                return;
+
+            visible = true;
+            draggable = widget;
             start_x = x;
             start_y = y;
 
+            var drag_parent = binded[widget];
             Graphene.Point start_point = Graphene.Point.zero ();
-            button.compute_point (list, start_point, out start_point);
+
+            widget.compute_point (drag_parent, start_point, out start_point);
             current_x = start_point.x;
             current_y = start_point.y;
+            drag_parent.remove (widget);
 
-            list.remove (button);
-
-            if (list.orientation == Gtk.Orientation.HORIZONTAL)
-                fixed.put (button, start_point.x, 0);
+            if (drag_parent.orientation == Gtk.Orientation.HORIZONTAL)
+                put (widget, start_point.x, 0);
             else
-                fixed.put (button, 0, start_point.y);
-
-            button.add_controller (gesture);
-            draggable = button;
+                put (widget, 0, start_point.y);
         }
 
         private void on_drag_update (double x, double y) {
-            if (list.orientation == Gtk.Orientation.HORIZONTAL) {
+            if (binded[draggable].orientation == Gtk.Orientation.HORIZONTAL) {
                 if (x > start_x)
                     current_x += x - start_x;
                 else
@@ -59,7 +83,7 @@ namespace WindowList {
                     current_y -= start_y - y;
             }
 
-            fixed.move (draggable, current_x, current_y);
+            move (draggable, current_x, current_y);
         }
 
         private void on_drag_end (double x, double y) {
@@ -69,15 +93,15 @@ namespace WindowList {
 
     public sealed class WindowList : Gtk.Box {
         internal Gtk.RevealerTransitionType transition_type { get; set; }
-        private WindowsArea windows_area;
+        private DraggableArea drag_area;
         private bool rectangles_dirty = false;
         private Registry registry = new Registry ();
         private Interfaces.Shell.PanelContext panel;
         private Gee.HashMap<ToplevelWindow, Gtk.Revealer> revealers = new Gee.HashMap<ToplevelWindow, Gtk.Revealer> ();
 
-        public WindowList (Interfaces.Shell.PanelContext panel, WindowsArea win_area) {
+        public WindowList (Interfaces.Shell.PanelContext panel, DraggableArea drag_area) {
             this.panel = panel;
-            this.windows_area = win_area;
+            this.drag_area = drag_area;
 
             if (registry.toplevel_manager == null) {
                 critical ("Cannot get ToplevelManager\n");
@@ -101,13 +125,13 @@ namespace WindowList {
             var revealer = new Gtk.Revealer ();
             var button = new WindowButton (window);
 
-            button.drag_started.connect ((x, y) => { windows_area.start_drag (button, x, y); });
-
             bind_property ("transition_type", revealer, "transition_type", BindingFlags.SYNC_CREATE);
             revealer.child = button;
 
             revealers[window] = revealer;
             append (revealer);
+
+            drag_area.bind_widget (this, revealer);
 
             revealer.reveal_child = true;
             Timeout.add_once (revealer.transition_duration, () => { window.set_rectangle (panel, revealer); });
@@ -118,6 +142,7 @@ namespace WindowList {
             if (!revealers.unset (window, out revealer))
                 return;
 
+            drag_area.unbind_widget (revealer);
             revealer.reveal_child = false;
             Timeout.add_once (revealer.transition_duration, () => {
                 rectangles_dirty = true;
@@ -165,15 +190,21 @@ namespace WindowList {
 
     public class Plugin : Peas.ExtensionBase, Interfaces.Shell.Plugin {
         private Interfaces.Shell.PanelContext ctx;
-        private WindowsArea list;
+        private Gtk.Overlay overlay = new Gtk.Overlay ();
 
         public void activate (Interfaces.Shell.PanelContext ctx) {
             this.ctx = ctx;
-            this.list = new WindowsArea (ctx);
+
+            var drag_area = new DraggableArea ();
+            var win_list = new WindowList (ctx, drag_area);
+
+            overlay.child = win_list;
+            overlay.add_overlay (drag_area);
+            overlay.set_measure_overlay (drag_area, false);
         }
 
         public Gtk.Widget get_panel_widget () {
-            return list;
+            return overlay;
         }
 
         public Adw.Bin? get_showable_widget () { return null; }
