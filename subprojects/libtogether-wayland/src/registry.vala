@@ -5,7 +5,7 @@ namespace TogetherWayland {
         public OutputsKeeper? outputs_keeper { get; private set; }
         public WayfireShellManager? wayfire_shell_manager { get; private set; }
         public Wl.Seat? seat_proxy;
-        internal unowned Wl.Display display = ((Gdk.Wayland.Display) Gdk.Display.get_default ()).get_wl_display ();
+        public unowned Wl.Display display = ((Gdk.Wayland.Display) Gdk.Display.get_default ()).get_wl_display ();
         private IOChannel dispatch_channel;
         private uint? dispatch_id;
         private const Wl.RegistryListener registry_listener = {

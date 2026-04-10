@@ -3,7 +3,7 @@ using TogetherCore;
 using TogetherCore.Managers;
 
 namespace WindowList {
-    public class WindowButton : Gtk.ToggleButton {
+    public sealed class WindowButton : Gtk.ToggleButton {
         private bool toggle_block = false;
         private ToplevelWindow window;
         private TogetherCore.Settings.Shell.Settings settings = new TogetherCore.Settings.Shell.Settings ();
@@ -11,6 +11,8 @@ namespace WindowList {
         private Registry registry = new Registry ();
         private Gtk.Label title = new Gtk.Label (_("Unknown app"));
         private Gtk.Image icon = new Gtk.Image ();
+
+        public signal void drag_started (double x, double y);
 
         public WindowButton (ToplevelWindow window) {
             this.window = window;
@@ -20,6 +22,10 @@ namespace WindowList {
             box.margin_start = box.margin_end = 8;
             box.append (icon);
             box.append (title);
+
+            var drag_gesture = new Gtk.GestureDrag ();
+            drag_gesture.drag_begin.connect ((x, y) => { drag_started (x, y); });
+            add_controller (drag_gesture);
 
             title.max_width_chars = 40;
             title.ellipsize = Pango.EllipsizeMode.MIDDLE;

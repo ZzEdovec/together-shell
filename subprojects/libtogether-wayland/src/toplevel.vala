@@ -198,11 +198,6 @@ namespace TogetherWayland {
         }
 
         public void set_rectangle (Gtk.Window window, Gtk.Widget widget) {
-            var native = window.get_native ();
-            if (native == null) {
-                warning ("Cannot set rectangle: native is null\n");
-                return;
-            }
             var surface = window.get_surface () as Gdk.Wayland.Surface;
             if (surface == null) {
                 warning ("Cannot set rectangle: surface is null\n");
