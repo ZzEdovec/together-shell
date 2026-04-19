@@ -25,6 +25,7 @@ config_inc = include_directories('.')
 add_project_arguments('-DGETTEXT_PACKAGE="' + meson.project_name () + '"', language: 'c')
 
 wayland_dep = dependency('together-wayland-0.1', fallback: ['libtogether-wayland', 'libtogether_wayland_dep'])
+widgets_dep = dependency('together-widgets-0.1', fallback: ['libtogether-widgets', 'libtogether_widgets_dep'])
 core_dep = dependency('together-core-0.1', fallback: ['libtogether-core', 'libtogether_core_dep'])
 
 subdir('data')

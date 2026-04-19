@@ -2,6 +2,7 @@ using TogetherCore.Settings.Shell;
 
 namespace TogetherCore.Interfaces.Shell {
     public interface PanelContext : Gtk.ApplicationWindow {
+        public abstract TogetherCore.Settings.Shell.Panel settings { get; }
         public abstract PanelPosition position { get; set; }
 
         public signal void position_changed (PanelPosition pos);

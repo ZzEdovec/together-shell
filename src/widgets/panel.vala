@@ -4,7 +4,8 @@ using TogetherWayland;
 
 namespace TogetherShell {
     public class Panel : Gtk.ApplicationWindow, TogetherCore.Interfaces.Shell.PanelContext { // TODO: DOCK MODE, WIDGET_MOVE SIGNAL
-        private TogetherCore.Settings.Shell.Panel settings;
+        private TogetherCore.Settings.Shell.Panel _settings;
+        public TogetherCore.Settings.Shell.Panel settings { get { return _settings; }}
         private Gtk.Box widgets_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         public PanelPosition position {
             get { return settings.position; }
@@ -18,7 +19,7 @@ namespace TogetherShell {
 
         public Panel (TogetherShell.Application app, TogetherCore.Settings.Shell.Panel settings) {
             application = app;
-            this.settings = settings;
+            _settings = settings;
             opacity = new TogetherCore.Settings.Shell.Settings ().opacity ? 0.8 : 1;
             child = widgets_box;
 

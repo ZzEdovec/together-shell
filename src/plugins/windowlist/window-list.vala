@@ -1,153 +1,219 @@
 using TogetherCore;
 using TogetherCore.Settings.Shell;
+using TogetherCore.Managers;
 using TogetherWayland;
+using TogetherWidgets;
 
 namespace WindowList {
-    public errordomain DraggableError {
-        ALREADY_BINDED,
-        NOT_BINDED
-    }
-
-    public sealed class DraggableArea : Gtk.Fixed {
-        private Gtk.Widget? draggable;
-        private Gee.HashMap<Gtk.Widget, Gtk.Box> binded = new Gee.HashMap<Gtk.Widget, Gtk.Box> ();
-
-        private double start_x;
-        private double start_y;
-        private double current_x;
-        private double current_y;
-
-        construct {
-            visible = false;
-        }
-
-        public void bind_widget (Gtk.Box parent, Gtk.Widget widget) throws DraggableError {
-            if (binded.has_key (widget))
-                throw new DraggableError.ALREADY_BINDED ("Already binded");
-
-            binded[widget] = parent;
-
-            var controller = new Gtk.GestureDrag ();
-            controller.drag_begin.connect ((x, y) => { on_drag_start (widget, x, y); });
-            controller.drag_update.connect (on_drag_update);
-            controller.drag_end.connect (on_drag_end);
-
-            widget.add_controller (controller);
-            widget.set_data<Gtk.GestureDrag> ("drag_area_gest", controller);
-        }
-
-        public void unbind_widget (Gtk.Widget widget) throws DraggableError {
-            var controller = widget.get_data<Gtk.GestureDrag?> ("drag_area_gest");
-            if (controller == null || !binded.has_key (widget))
-                throw new DraggableError.NOT_BINDED ("Not binded");
-
-            widget.remove_controller (controller);
-            binded.unset (widget);
-            widget.set_data<Gtk.GestureDrag?> ("drag_area_gest", null);
-        }
-
-        public void on_drag_start (Gtk.Widget widget, double x, double y) {
-            if (draggable != null)
-                return;
-
-            visible = true;
-            draggable = widget;
-            start_x = x;
-            start_y = y;
-
-            var drag_parent = binded[widget];
-            Graphene.Point start_point = Graphene.Point.zero ();
-
-            widget.compute_point (drag_parent, start_point, out start_point);
-            current_x = start_point.x;
-            current_y = start_point.y;
-            drag_parent.remove (widget);
-
-            if (drag_parent.orientation == Gtk.Orientation.HORIZONTAL)
-                put (widget, start_point.x, 0);
-            else
-                put (widget, 0, start_point.y);
-        }
-
-        private void on_drag_update (double x, double y) {
-            if (binded[draggable].orientation == Gtk.Orientation.HORIZONTAL) {
-                if (x > start_x)
-                    current_x += x - start_x;
-                else
-                    current_x -= start_x - x;
-            }
-            else {
-                if (y > start_y)
-                    current_y += y - start_y;
-                else
-                    current_y -= start_y - y;
-            }
-
-            move (draggable, current_x, current_y);
-        }
-
-        private void on_drag_end (double x, double y) {
-
-        }
-    }
-
     public sealed class WindowList : Gtk.Box {
         internal Gtk.RevealerTransitionType transition_type { get; set; }
         private DraggableArea drag_area;
         private bool rectangles_dirty = false;
         private Registry registry = new Registry ();
+        private TogetherCore.Settings.Shell.Settings settings = new TogetherCore.Settings.Shell.Settings ();
+        private AppInfoManager appinfo_manager = new AppInfoManager ();
         private Interfaces.Shell.PanelContext panel;
+        private Gee.HashMap<DesktopAppInfo, Gtk.Revealer> pinned_revealers = new Gee.HashMap<DesktopAppInfo, Gtk.Revealer> ();
+        private Gtk.Separator separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
         private Gee.HashMap<ToplevelWindow, Gtk.Revealer> revealers = new Gee.HashMap<ToplevelWindow, Gtk.Revealer> ();
+        private Gtk.Revealer? painted;
 
         public WindowList (Interfaces.Shell.PanelContext panel, DraggableArea drag_area) {
             this.panel = panel;
             this.drag_area = drag_area;
+
+            separator.visible = false;
+            separator.margin_end = separator.margin_top = separator.margin_start = separator.margin_bottom = 8;
+            append (separator);
 
             if (registry.toplevel_manager == null) {
                 critical ("Cannot get ToplevelManager\n");
                 return;
             }
 
-            update_orientation (panel.position);
+            bind_property ("orientation", separator, "orientation", BindingFlags.SYNC_CREATE);
+            bind_property ("orientation", drag_area, "orientation", BindingFlags.SYNC_CREATE);
+
+            drag_area.below_finded.connect (repaint_revealer);
+            drag_area.below_lost.connect (unpaint_revealer);
+            drag_area.drag_ended.connect ((dragged, below) => { repose_revealer (dragged, below); });
+
+            foreach (var app in settings.panel_pinned.apps)
+                add_pinned_revealer (app);
             foreach (var window in registry.toplevel_manager.windows)
                 handle_window (window);
 
+            update_orientation (panel.position);
+
             panel.position_changed.connect (update_orientation);
             registry.toplevel_manager.window_added.connect (handle_window);
+            settings.panel_pinned.app_pinned.connect (add_pinned_revealer);
+            settings.panel_pinned.app_unpinned.connect (remove_pinned_revealer);
         }
 
-        private void handle_window (ToplevelWindow window) {print ("new window\n");
-            add_button (window);
-            window.closed.connect (remove_button);
+        private void handle_window (ToplevelWindow window) {
+            if (window.app_id == null && window.title == null) // gpu-screen-recorder-ui workaround
+                return;
+
+            bool pinned_found = false;
+            if (window.app_id != null) {
+                DesktopAppInfo? app = appinfo_manager.get_by_id (window.app_id) ?? appinfo_manager.get_by_wm_class (window.app_id);
+                if (app != null && pinned_revealers.has_key (app)) {
+                    pinned_found = true;
+                    var revealer = pinned_revealers[app];
+
+                    ((WindowButton) revealer.child).attach_window (window);
+                    revealers[window] = revealer;
+
+                    Idle.add_once (() => { window.set_rectangle (panel, revealer); }); // idle because button may show label
+                }
+            }
+
+            if (!pinned_found)
+                add_window_revealer (window);
+
+            update_separator_state ();
+            window.closed.connect (remove_window_revealer);
         }
 
-        private void add_button (ToplevelWindow window) {
+        private Gtk.Revealer create_revealer (WindowButton button) {
             var revealer = new Gtk.Revealer ();
-            var button = new WindowButton (window);
 
+            panel.settings.bind_property ("size", button, "icon_size", BindingFlags.SYNC_CREATE, (bind, from, ref to) => {
+                if ((uint) from >= 60)
+                    to = (uint) ((uint) from / 2);
+                else
+                    to = (uint) ((uint) from / 2.7);
+                return true;
+            });
+            settings.bind_property ("show_window_labels", button, "show_label", BindingFlags.SYNC_CREATE, (bind, from, ref to) => {
+                if (panel.position == PanelPosition.LEFT || panel.position == PanelPosition.RIGHT) //maybe memory leak
+                    to = false;
+                else
+                    to = from;
+
+                return true;
+            });
+
+            panel.settings.bind_property ("size", revealer, "width_request", BindingFlags.SYNC_CREATE);
+            panel.settings.bind_property ("size", revealer, "height_request", BindingFlags.SYNC_CREATE);
             bind_property ("transition_type", revealer, "transition_type", BindingFlags.SYNC_CREATE);
             revealer.child = button;
 
+            return revealer;
+        }
+
+        private void add_window_revealer (ToplevelWindow window) {
+            var revealer = create_revealer (new WindowButton (window));
+
             revealers[window] = revealer;
             append (revealer);
-
-            drag_area.bind_widget (this, revealer);
+            try { drag_area.bind_widget (revealer); } catch {}
 
             revealer.reveal_child = true;
             Timeout.add_once (revealer.transition_duration, () => { window.set_rectangle (panel, revealer); });
         }
 
-        private void remove_button (ToplevelWindow window) {
-            Gtk.Revealer revealer;
-            if (!revealers.unset (window, out revealer))
-                return;
+        private void add_pinned_revealer (DesktopAppInfo app) {
+            var button = new WindowButton.for_pinned (app);
+            var revealer = create_revealer (button);
 
-            drag_area.unbind_widget (revealer);
+            pinned_revealers[app] = revealer;
+            revealer.insert_before (this, separator);
+
+            revealer.reveal_child = true;
+            update_separator_state ();
+        }
+
+        private void remove_revealer (Gtk.Revealer revealer) {
+            try { drag_area.unbind_widget (revealer); } catch {}
             revealer.reveal_child = false;
             Timeout.add_once (revealer.transition_duration, () => {
                 rectangles_dirty = true;
                 remove (revealer);
             });
+        }
+
+        private bool update_separator_state () {
+            bool should_show = !revealers.is_empty && !pinned_revealers.is_empty;
+            if (should_show != separator.visible) {
+                separator.visible = should_show;
+                Idle.add_once (update_rectangles);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void remove_window_revealer (ToplevelWindow window) {
+            Gtk.Revealer revealer;
+            if (!revealers.unset (window, out revealer))
+                return;
+
+            bool sep_upd = update_separator_state ();
+
+            if (pinned_revealers.values.contains (revealer)) {
+                var button = (WindowButton) revealer.child;
+                button.detach_window ();
+
+                if (button.show_label && !sep_upd) // button label hiding after window detaching
+                    Idle.add_once (update_rectangles);
+
+                return;
+            }
+
+            remove_revealer (revealer);
+        }
+
+        private void remove_pinned_revealer (DesktopAppInfo app) {
+            Gtk.Revealer revealer;
+            if (!pinned_revealers.unset (app, out revealer))
+                return;
+
+            bool sep_upd = update_separator_state ();
+
+            if (revealers.values.contains (revealer)) {
+                ((WindowButton) revealer.child).detach_app ();
+                repose_revealer (revealer, null, !sep_upd);
+            }
+            else
+                remove_revealer (revealer);
+        }
+
+        private void unpaint_revealer () {
+            if (painted == null)
+                return;
+
+            var classes = new Gee.HashSet<string> ();
+            classes.add_all_array (painted.css_classes);
+
+            classes.remove ("accent");
+            painted.css_classes = classes.to_array ();
+
+            painted = null;
+        }
+
+        private void repaint_revealer (Gtk.Widget dragged, Gtk.Widget below) {
+            unpaint_revealer ();
+
+            var classes = below.css_classes;
+            classes += "accent";
+            below.css_classes = classes;
+
+            painted = (Gtk.Revealer) below;
+        }
+
+        private void repose_revealer (Gtk.Widget repose, Gtk.Widget? after = null, bool update_rects = true) {
+            if (after != null)
+                reorder_child_after (repose, after);
+            else
+                reorder_child_after (repose, get_last_child ());
+
+            unpaint_revealer ();
+
+            if (update_rects)
+                Idle.add_once (update_rectangles);
         }
 
         public override void snapshot (Gtk.Snapshot snapshot) {
@@ -160,13 +226,14 @@ namespace WindowList {
         }
 
         private void update_rectangles () {
-            print ("Reset\n");
+            print ("updating\n");
             foreach (var entry in revealers) {
                 entry.key.set_rectangle (panel, entry.value);
             }
         }
 
-        private void update_orientation (PanelPosition pos) { // TODO disable button labels when vertical
+        private void update_orientation (PanelPosition pos) {
+            bool show_labels = true;
             switch (pos) {
                 case (PanelPosition.TOP):
                     transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
@@ -179,11 +246,18 @@ namespace WindowList {
                 case (PanelPosition.LEFT):
                     transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
                     orientation = Gtk.Orientation.VERTICAL;
+                    show_labels = false;
                 break;
                 case (PanelPosition.RIGHT):
                     transition_type = Gtk.RevealerTransitionType.SLIDE_LEFT;
                     orientation = Gtk.Orientation.VERTICAL;
+                    show_labels = false;
                 break;
+            }
+
+            foreach (var revealer in revealers.values) {
+                var button = (WindowButton) revealer.child;
+                button.show_label = show_labels;
             }
         }
     }

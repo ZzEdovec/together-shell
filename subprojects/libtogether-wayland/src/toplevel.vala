@@ -19,14 +19,14 @@ namespace TogetherWayland {
                 return _current_outputs.to_array ();
             }
         }
-        public string? title { get; private set; }
-        public string? app_id { get; private set; }
-        public Wayfire.View? wf_view { get; private set; }
+        public string title { get; private set; default = null; }
+        public string app_id { get; private set; default = null; }
+        public Wayfire.View wf_view { get; private set; default = null; }
         public bool maximized { get; private set; default = false; }
         public bool minimized { get; private set; default = false; }
         public bool activated { get; private set; default = false; }
         public bool fullscreen { get; private set; default = false; }
-        public ToplevelWindow? parent { get; private set; }
+        public ToplevelWindow parent { get; private set; default = null; }
 
         public signal void output_enter (Output output);
         public signal void output_leave (Output output);
@@ -44,8 +44,7 @@ namespace TogetherWayland {
         private static void on_title (void* data, Zwlr.ForeignToplevelHandleV1 handle, string title) {
             var self = (ToplevelWindow) data;
 
-            self.title = title;
-            Signal.emit_by_name (self, "notify::title");
+            self.title = title != "nil" ? title : null;
         }
 
         private static void on_appid (void* data, Zwlr.ForeignToplevelHandleV1 handle, string id) {
@@ -53,13 +52,22 @@ namespace TogetherWayland {
 
             if (id.contains (" ")) { // Wayfire full app_id mode
                 var ids = id.split (" ");
-                self.app_id = ids[1] == "" ? ids[0] : ids[1];
-                self.wf_view = new Wayfire.View (int.parse (ids[2][7:]));
+                if (ids.length > 3) {
+                    self.app_id = null;
+                    return;
+                }
+
+                var xdg_appid = ids[0];
+                var gtk_appid = ids[1];
+                if (xdg_appid != "nil")
+                    self.app_id = xdg_appid;
+                else if (gtk_appid != "nil")
+                    self.app_id = gtk_appid;
+
+                self.wf_view = new Wayfire.View (int.parse (ids[2][7:])); // 7 - wf-ipc-
             }
             else
                 self.app_id = id;
-
-            Signal.emit_by_name (self, "notify::app_id");
         }
 
         private static void on_output_enter (void* data, Zwlr.ForeignToplevelHandleV1 handle, Wl.Output wl_output) {
@@ -100,10 +108,8 @@ namespace TogetherWayland {
                 return;
 
             var parent = self.registry.toplevel_manager.get_window (wl_parent);
-            if (parent != null) {
+            if (parent != null)
                 self.parent = parent;
-                Signal.emit_by_name (self, "notify::parent");
-            }
         }
 
         private void parse_state (Wl.Array state_array) {

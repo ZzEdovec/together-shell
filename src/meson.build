@@ -10,6 +10,7 @@ deps = [
 	dependency('astal-mpris-0.1'),
 	config_dep,
 	wayland_dep,
+	widgets_dep,
 	core_dep,
 ]
 

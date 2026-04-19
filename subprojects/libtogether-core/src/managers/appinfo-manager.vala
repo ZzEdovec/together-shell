@@ -13,7 +13,10 @@ public class TogetherCore.Managers.AppInfoManager : Object {
     }
 
     public DesktopAppInfo? get_by_id (string app_id) {
-        return apps_list[app_id];
+        if (app_id.has_suffix (".desktop") && !apps_list.has_key (app_id))
+            return apps_list[app_id[0:-8]];
+        else
+            return apps_list[app_id];
     }
 
     public DesktopAppInfo? get_by_wm_class (string wm_class) {

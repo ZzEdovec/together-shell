@@ -50,7 +50,7 @@
 	    <default>true</default>
 	  </key>
 	  <key name="panel-pinned" type="as">
-	    <default>[]</default>
+	    <default>['opera.desktop','com.ayugram.desktop.desktop','org.gnome.Console.desktop']</default>
       <summary>Panel pinned apps</summary>
     </key>
 	  <key name="appmenu-pinned" type="as">
@@ -66,3 +66,4 @@
 	  </key>
 	</schema>
 </schemalist>
+
