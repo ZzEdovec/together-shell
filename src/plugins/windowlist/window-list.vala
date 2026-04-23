@@ -274,7 +274,9 @@ namespace WindowList {
 
             overlay.child = win_list;
             overlay.add_overlay (drag_area);
+            overlay.add_overlay (indicator);
             overlay.set_measure_overlay (drag_area, false);
+            overlay.set_measure_overlay (indicator, false);
         }
 
         public Gtk.Widget get_panel_widget () {

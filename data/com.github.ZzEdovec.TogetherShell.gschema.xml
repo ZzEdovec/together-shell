@@ -50,7 +50,7 @@
 	    <default>true</default>
 	  </key>
 	  <key name="panel-pinned" type="as">
-	    <default>['opera.desktop','com.ayugram.desktop.desktop','org.gnome.Console.desktop']</default>
+	    <default>['opera.desktop','org.gnome.Nautilus.desktop','com.ayugram.desktop.desktop','org.gnome.Console.desktop']</default>
       <summary>Panel pinned apps</summary>
     </key>
 	  <key name="appmenu-pinned" type="as">
@@ -58,7 +58,7 @@
       <summary>Application menu pinned apps</summary>
     </key>
 	  <key name="background" type="s">
-	    <default>'/home/queinu/Загрузки/anime-style-mythical-dragon-creature.jpg'</default>
+	    <default>'/home/queinu/Изображения/together-shell/background.jpg'</default>
 	    <summary>Background image path</summary>
 	  </key>
 	  <key name="background-fit" enum="com.github.ZzEdovec.TogetherShell.BackgroundFit">

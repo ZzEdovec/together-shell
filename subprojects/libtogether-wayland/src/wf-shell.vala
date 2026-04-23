@@ -54,7 +54,6 @@ namespace TogetherWayland {
                 registry.display.flush ();
             }
         }
-
         public bool menu_toggled { get; private set; }
         public bool has_fullscreen { get; private set; }
 
