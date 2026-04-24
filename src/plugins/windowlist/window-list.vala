@@ -271,6 +271,7 @@ namespace WindowList {
 
             var drag_area = new DraggableArea ();
             var win_list = new WindowList (ctx, drag_area);
+            var indicator = new WindowIndicator ();
 
             overlay.child = win_list;
             overlay.add_overlay (drag_area);
@@ -291,3 +292,4 @@ namespace WindowList {
 public void peas_register_types (TypeModule module) {
     ((Peas.ObjectModule) module).register_extension_type (typeof (Interfaces.Shell.Plugin), typeof (WindowList.Plugin));
 }
+
