@@ -1,10 +1,10 @@
 using TogetherCore.Settings.Shell;
 
 namespace WindowList {
-    public sealed class WindowIndicator : Gtk.Widget {
+    public sealed class WindowIndicator : Gtk.Widget, Gtk.Orientable {
         private uint _count = 1;
-        private PanelPosition _panel_position = PanelPosition.BOTTOM;
-        private uint _dot_size = 3;
+        private Gtk.Orientation _orientation = Gtk.Orientation.HORIZONTAL;
+        private uint _dot_size = 4;
         private uint _dot_gap = 4;
         public uint count {
             get {
@@ -15,12 +15,12 @@ namespace WindowList {
                 queue_draw ();
             }
         }
-        public PanelPosition panel_position {
+        public Gtk.Orientation orientation {
             get {
-                return _panel_position;
+                return _orientation;
             }
             set {
-                _panel_position = value;
+                _orientation = value;
                 queue_draw ();
             }
         }
@@ -39,10 +39,6 @@ namespace WindowList {
             }
         }
 
-        construct {
-            height_request = 4;
-        }
-
         public override bool contains (double x, double y) {
             return false;
         }
@@ -54,11 +50,10 @@ namespace WindowList {
             int[] size = { get_width (), get_height () };
             Gdk.RGBA color = { 255, 255, 255, 1 };
 
-            bool is_horizontal = panel_position == PanelPosition.TOP || panel_position == PanelPosition.BOTTOM;
             float total = _count * dot_size + (_count - 1) * dot_gap;
             float x = 0;
             float y = 0;
-            if (is_horizontal) {
+            if (orientation == Gtk.Orientation.HORIZONTAL) {
                 x = (size[0] - total) / 2;
                 y = (size[1] - dot_size) / 2;
             }
@@ -68,7 +63,6 @@ namespace WindowList {
             }
 
             for (uint i = 0; i < _count; i++) {
-                print ("trying to pop\n");
                 var rect = Graphene.Rect ();
                 var rounded = Gsk.RoundedRect ();
 
@@ -76,7 +70,8 @@ namespace WindowList {
                     rect.init (x + i * (dot_size + dot_gap), y, dot_size, dot_size);
                 else
                     rect.init (x, y + i * (dot_size + dot_gap), dot_size, dot_size);
-                rounded.init_from_rect (rect, (float) dot_size);
+
+                rounded.init_from_rect (rect, dot_size / 2);
 
                 snapshot.push_rounded_clip (rounded);
                 snapshot.append_color (color, rect);

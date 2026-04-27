@@ -271,13 +271,10 @@ namespace WindowList {
 
             var drag_area = new DraggableArea ();
             var win_list = new WindowList (ctx, drag_area);
-            var indicator = new WindowIndicator ();
 
             overlay.child = win_list;
             overlay.add_overlay (drag_area);
-            overlay.add_overlay (indicator);
             overlay.set_measure_overlay (drag_area, false);
-            overlay.set_measure_overlay (indicator, false);
         }
 
         public Gtk.Widget get_panel_widget () {

@@ -8,6 +8,7 @@ namespace WindowList {
         public bool show_label { get; set; default = false; } // ignored when window not attached
         public bool has_window { get; private set; default = false; }
         private bool toggle_block = false;
+        private Gtk.Revealer title_revealer = new Gtk.Revealer ();
         private ToplevelWindow? window;
         private DesktopAppInfo? app;
         private Binding? label_bind;
@@ -17,11 +18,13 @@ namespace WindowList {
         private Gtk.Image icon = new Gtk.Image.from_icon_name ("application-x-executable-symbolic");
 
         construct {
+            title_revealer.child = title;
+
             var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
             box.margin_start = box.margin_end = 8;
             box.halign = box.valign = Gtk.Align.CENTER;
             box.append (icon);
-            box.append (title);
+            box.append (title_revealer);
 
             child = box;
             css_classes = { "panel-task-button" };
@@ -109,6 +112,18 @@ namespace WindowList {
                 css_classes = { "flat", "panel-task-button" };
             else
                 css_classes = { "panel-task-button" };
+        }
+
+        private void switch_title_revealer () {
+            bool is_window = window != null;
+
+            title_revealer.reveal_child = is_window;
+            Timeout.add_once (title_revealer.transition_duration, () => { title_revealer.visible = is_window; });
+        }
+
+        private void switch_title_revealer_anim () {
+            title_revealer.transition_type = orientation == Gtk.Orientation.VERTICAL ? Gtk.RevealerTransitionType.SLIDE_DOWN
+                                                                                     : Gtk.RevealerTransitionType.SLIDE_RIGHT;
         }
 
         public override void map () {
