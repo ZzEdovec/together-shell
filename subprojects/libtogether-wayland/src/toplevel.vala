@@ -108,8 +108,10 @@ namespace TogetherWayland {
                 return;
 
             var parent = self.registry.toplevel_manager.get_window (wl_parent);
-            if (parent != null)
+            if (parent != null) {
                 self.parent = parent;
+                message ("Parent found");
+            }
         }
 
         private void parse_state (Wl.Array state_array) {
