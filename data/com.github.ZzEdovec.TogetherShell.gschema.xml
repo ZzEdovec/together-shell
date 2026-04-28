@@ -50,7 +50,7 @@
 	    <default>true</default>
 	  </key>
 	  <key name="panel-pinned" type="as">
-	    <default>['opera.desktop','org.gnome.Nautilus.desktop','com.ayugram.desktop.desktop','org.gnome.Console.desktop']</default>
+	    <default>['opera.desktop','org.gnome.Nautilus.desktop','com.ayugram.desktop.desktop','org.gnome.Console.desktop','net.nokyan.Resources.desktop','steam.desktop','']</default>
       <summary>Panel pinned apps</summary>
     </key>
 	  <key name="appmenu-pinned" type="as">

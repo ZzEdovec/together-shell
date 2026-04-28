@@ -133,14 +133,21 @@ namespace WindowList {
             if (should_show == title_revealer.reveal_child)
                 return;
 
+            ulong reveal_id = 0;
+
             if (should_show && _show_label && _show_label) {
                 title_revealer.visible = true;
-                Timeout.add_once (title_revealer.transition_duration, () => { content_size_updated (); });
+                reveal_id = title_revealer.notify["child-revealed"].connect (() => {
+                    Idle.add_once (() => { content_size_updated (); });
+                    title_revealer.disconnect (reveal_id); // TODO in TG-CORE: GTK-UTILS
+                });
             }
             else
-                Timeout.add_once (title_revealer.transition_duration, () => {
+                reveal_id = title_revealer.notify["child-revealed"].connect (() => {
                     title_revealer.visible = false;
                     Idle.add_once (() => { content_size_updated (); });
+
+                    title_revealer.disconnect (reveal_id);
                 });
 
             title_revealer.reveal_child = should_show;
