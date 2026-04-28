@@ -58,26 +58,27 @@ namespace WindowList {
             bool pinned_found = false;
             if (window.app_id != null) {
                 DesktopAppInfo? app = appinfo_manager.get_by_id (window.app_id) ?? appinfo_manager.get_by_wm_class (window.app_id);
-                if (app != null && pinned_revealers.has_key (app)) {
+                if (app != null && pinned_revealers.has_key (app) && window.parent == null) { // PARENT CHECK IS TEMPORARY
                     pinned_found = true;
                     var revealer = pinned_revealers[app];
+                    var button = ((WindowButton) revealer.child);
 
-                    ((WindowButton) revealer.child).attach_window (window);
-                    revealers[window] = revealer;
-
-                    Idle.add_once (() => { window.set_rectangle (panel, revealer); }); // idle because button may show label
+                    if (button.window == null) { // parent windows are not always correctly sent by the compositor, TEMPORARY
+                        button.window = window;
+                        revealers[window] = revealer;
+                    }
                 }
             }
 
             if (!pinned_found)
                 add_window_revealer (window);
 
-            update_separator_state ();
             window.closed.connect (remove_window_revealer);
         }
 
         private Gtk.Revealer create_revealer (WindowButton button) {
             var revealer = new Gtk.Revealer ();
+            weak Interfaces.Shell.PanelContext panel_weak = panel;
 
             panel.settings.bind_property ("size", button, "icon_size", BindingFlags.SYNC_CREATE, (bind, from, ref to) => {
                 if ((uint) from >= 60)
@@ -87,7 +88,7 @@ namespace WindowList {
                 return true;
             });
             settings.bind_property ("show_window_labels", button, "show_label", BindingFlags.SYNC_CREATE, (bind, from, ref to) => {
-                if (panel.position == PanelPosition.LEFT || panel.position == PanelPosition.RIGHT) //maybe memory leak
+                if (panel_weak.position == PanelPosition.LEFT || panel_weak.position == PanelPosition.RIGHT)
                     to = false;
                 else
                     to = from;
@@ -96,7 +97,7 @@ namespace WindowList {
             });
 
             panel.settings.bind_property ("size", revealer, "width_request", BindingFlags.SYNC_CREATE);
-            panel.settings.bind_property ("size", revealer, "height_request", BindingFlags.SYNC_CREATE);
+            panel.settings.bind_property ("size", revealer, "height_request", BindingFlags.SYNC_CREATE); // maybe bug?
             bind_property ("transition_type", revealer, "transition_type", BindingFlags.SYNC_CREATE);
             revealer.child = button;
 
@@ -104,7 +105,8 @@ namespace WindowList {
         }
 
         private void add_window_revealer (ToplevelWindow window) {
-            var revealer = create_revealer (new WindowButton (window));
+            var button = new WindowButton (window);
+            var revealer = create_revealer (button);
 
             revealers[window] = revealer;
             append (revealer);
@@ -112,6 +114,10 @@ namespace WindowList {
 
             revealer.reveal_child = true;
             Timeout.add_once (revealer.transition_duration, () => { window.set_rectangle (panel, revealer); });
+
+            update_separator_state ();
+            bind_property ("orientation", button, "orientation", BindingFlags.SYNC_CREATE);
+            button.content_size_updated.connect (update_rectangles);
         }
 
         private void add_pinned_revealer (DesktopAppInfo app) {
@@ -122,7 +128,10 @@ namespace WindowList {
             revealer.insert_before (this, separator);
 
             revealer.reveal_child = true;
+
             update_separator_state ();
+            bind_property ("orientation", button, "orientation", BindingFlags.SYNC_CREATE);
+            button.content_size_updated.connect (update_rectangles);
         }
 
         private void remove_revealer (Gtk.Revealer revealer) {
@@ -146,20 +155,22 @@ namespace WindowList {
             return false;
         }
 
+        private void update_revealer_output (Gtk.Revealer revealer, bool pinned, Output output) {
+            // TODO
+        }
+
         private void remove_window_revealer (ToplevelWindow window) {
             Gtk.Revealer revealer;
             if (!revealers.unset (window, out revealer))
                 return;
 
-            bool sep_upd = update_separator_state ();
+            update_separator_state ();
 
             if (pinned_revealers.values.contains (revealer)) {
-                var button = (WindowButton) revealer.child;
-                button.detach_window ();
-
-                if (button.show_label && !sep_upd) // button label hiding after window detaching
-                    Idle.add_once (update_rectangles);
-
+                if (window.parent == null) { // TEMPORARY
+                    var button = (WindowButton) revealer.child;
+                    button.window = null;
+                }
                 return;
             }
 
@@ -171,10 +182,10 @@ namespace WindowList {
             if (!pinned_revealers.unset (app, out revealer))
                 return;
 
-            bool sep_upd = update_separator_state ();
+            bool sep_upd = update_separator_state (); // update_rectangles in Idle.add_once, so we do not need to schedule another update
 
             if (revealers.values.contains (revealer)) {
-                ((WindowButton) revealer.child).detach_app ();
+                ((WindowButton) revealer.child).application = null;
                 repose_revealer (revealer, null, !sep_upd);
             }
             else
@@ -233,7 +244,7 @@ namespace WindowList {
         }
 
         private void update_orientation (PanelPosition pos) {
-            bool show_labels = true;
+            bool show_labels = settings.show_window_labels;
             switch (pos) {
                 case (PanelPosition.TOP):
                     transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN;
@@ -256,6 +267,10 @@ namespace WindowList {
             }
 
             foreach (var revealer in revealers.values) {
+                var button = (WindowButton) revealer.child;
+                button.show_label = show_labels;
+            }
+            foreach (var revealer in pinned_revealers.values) {
                 var button = (WindowButton) revealer.child;
                 button.show_label = show_labels;
             }

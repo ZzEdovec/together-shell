@@ -119,7 +119,7 @@ namespace TogetherWayland {
             return null;
         }
 
-        public Output? get_output_by_widget (Gtk.Widget widget) {
+        public Output? get_output_by_widget (Gtk.Widget widget) { // maybe redo because we use now gdk display for wayland
             var surface = widget.get_native ().get_surface ();
             if (surface == null)
                 return null;

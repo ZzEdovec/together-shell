@@ -7,18 +7,14 @@ namespace WindowList {
         private uint _dot_size = 4;
         private uint _dot_gap = 4;
         public uint count {
-            get {
-                return _count;
-            }
+            get { return _count; }
             set {
                 _count = value;
                 queue_draw ();
             }
         }
         public Gtk.Orientation orientation {
-            get {
-                return _orientation;
-            }
+            get { return _orientation; }
             set {
                 _orientation = value;
                 queue_draw ();
@@ -66,7 +62,7 @@ namespace WindowList {
                 var rect = Graphene.Rect ();
                 var rounded = Gsk.RoundedRect ();
 
-                if (is_horizontal)
+                if (orientation == Gtk.Orientation.HORIZONTAL)
                     rect.init (x + i * (dot_size + dot_gap), y, dot_size, dot_size);
                 else
                     rect.init (x, y + i * (dot_size + dot_gap), dot_size, dot_size);
