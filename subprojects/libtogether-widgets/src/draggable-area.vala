@@ -85,7 +85,7 @@ namespace TogetherWidgets {
             move (picture, x, y);
         }
 
-        private void on_drag_start (Gtk.Widget widget, double x, double y) {print ("drag_start called\n");
+        private void on_drag_start (Gtk.Widget widget, double x, double y) {
             if (draggable != null)
                 return;
 
@@ -143,7 +143,7 @@ namespace TogetherWidgets {
             }
         }
 
-        private void on_drag_end (double x, double y) {print ("drag_end called\n");
+        private void on_drag_end (double x, double y) {
             if (draggable.widget.opacity == 0) {
                 drag_ended (draggable.widget, find_below_widget ());
                 draggable.widget.opacity = draggable.start_opacity;

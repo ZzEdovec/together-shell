@@ -108,6 +108,8 @@ namespace WindowList {
             bind_property ("transition_type", revealer, "transition_type", BindingFlags.SYNC_CREATE);
             revealer.child = button;
 
+            button.content_size_updated.connect (update_rectangles);
+
             return revealer;
         }
 
@@ -119,15 +121,12 @@ namespace WindowList {
             append (revealer);
             try { drag_area.bind_widget (revealer); } catch {}
 
-            ulong reveal_id = 0;
-            reveal_id = revealer.notify["child-revealed"].connect (() => {
-                Idle.add_once (() => { window.set_rectangle (panel, revealer); });
-                revealer.disconnect (reveal_id);
-            });
             revealer.reveal_child = true;
+            Timeout.add_once (revealer.transition_duration, () => {
+                Idle.add_once (() => { window.set_rectangle (panel, revealer); });
+            });
 
             update_separator_state ();
-            button.content_size_updated.connect (update_rectangles);
         }
 
         private void add_pinned_revealer (DesktopAppInfo app) {
@@ -139,39 +138,15 @@ namespace WindowList {
             revealer.reveal_child = true;
 
             update_separator_state ();
-            button.content_size_updated.connect (update_rectangles);
         }
 
         private void remove_revealer (Gtk.Revealer revealer) {
             try { drag_area.unbind_widget (revealer); } catch {}
-            ulong reveal_id = 0;
-            reveal_id = revealer.notify["child-revealed"].connect (() => {
+            Timeout.add_once (revealer.transition_duration, () => {
                 remove (revealer);
-                var button = (WindowButton) revealer.child;
-                print ("before unbind ref_count: %u\n", button.ref_count);
-                revealer.child = null;
-                print ("after set null child ref_count: %u\n", button.ref_count);
-                revealer.disconnect (reveal_id);
-
                 Idle.add_once (update_rectangles);
             });
             revealer.reveal_child = false;
-        }
-
-        private bool update_separator_state () {
-            bool should_show = !revealers.is_empty && !pinned_revealers.is_empty;
-            if (should_show != separator.visible) {
-                separator.visible = should_show;
-                Idle.add_once (update_rectangles);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private void update_revealer_output (Gtk.Revealer revealer, bool pinned, Output output) {
-            // TODO
         }
 
         private void remove_window_revealer (ToplevelWindow window) {
@@ -202,6 +177,36 @@ namespace WindowList {
             else
                 remove_revealer (revealer);
         }
+
+        private bool update_separator_state () {
+            bool should_show = !revealers.is_empty && !pinned_revealers.is_empty;
+            if (should_show != separator.visible) {
+                separator.visible = should_show;
+                Idle.add_once (update_rectangles);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /*private void regroup_revealers () {
+            if (settings.group_windows) {
+                var equal_windows = new Gee.ArrayList<ToplevelWindow> ();
+                var appinfos = new Gee.HashMap<DesktopAppInfo, ToplevelWindow> ();
+                foreach (var window in revealers.keys) {
+                    DesktopAppInfo? app = null;
+                    if (window.app_id != null)
+                        app = appinfo_manager.get_by_id (window.app_id) ?? appinfo_manager.get_by_wm_class (window.app_id);
+                    if (app != null) {
+                        if (appinfos.has_key (app))
+                            equal_windows.add (window);
+                        else
+                            appinfos[app] = window;
+                    }
+                }
+            }
+        }*/
 
         private void unpaint_revealer () {
             if (painted == null)
@@ -282,6 +287,7 @@ namespace WindowList {
 
     public class Plugin : Peas.ExtensionBase, Interfaces.Shell.Plugin {
         private Interfaces.Shell.PanelContext ctx;
+        private Registry registry = new Registry ();
         private Gtk.Overlay overlay = new Gtk.Overlay ();
 
         public void activate (Interfaces.Shell.PanelContext ctx) {

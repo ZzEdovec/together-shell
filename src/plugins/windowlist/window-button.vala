@@ -10,7 +10,7 @@ namespace WindowList {
         private uint _dot_gap = 2;
         private int active_window = -1;
         private bool _show_label = false;
-        private bool toggle_block = false;
+        internal bool toggle_block = false;
         private WindowIndicator indicator = new WindowIndicator ();
         private Gtk.Revealer title_revealer = new Gtk.Revealer ();
         private Gtk.DropTarget drop_controller =  new Gtk.DropTarget (typeof (Gdk.FileList), Gdk.DragAction.COPY |
@@ -62,9 +62,7 @@ namespace WindowList {
         public signal void content_size_updated ();
         private signal void window_added ();
 
-        construct {notify["active"].connect (() => {
-    print ("notify active: %u, active=%s\n", ref_count, active.to_string ());
-});
+        construct {
             title_revealer.child = title;
             title_revealer.notify["visible"].connect (switch_flat);
 
@@ -112,7 +110,6 @@ namespace WindowList {
 
         public void attach_window (ToplevelWindow window) {
             windows.add (window);
-
             if (windows.size <= 1) {
                 switch_flat ();
                 update_app_info (window);
